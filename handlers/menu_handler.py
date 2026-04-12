@@ -23,9 +23,6 @@ class MenuHandler:
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
         
-        group_id = event.get_group_id()
-        is_group = bool(group_id)
-        
         triggered = False
         requested_menu_id = menu_id
         
@@ -43,11 +40,6 @@ class MenuHandler:
         
         if not triggered and page is None:
             return
-        
-        if is_group:
-            group_require_at = config.get("group_require_at", True)
-            if group_require_at and not self._is_at_me(event):
-                return
         
         menu_sets = config.get("menu_sets", [])
         if not menu_sets:
@@ -104,8 +96,8 @@ class MenuHandler:
         raw_categories = menu.get("categories", [])
         all_categories = self._parse_categories(raw_categories, debug)
         
-        pagination_enabled = config.get("pagination_enabled", True)
-        items_per_page = config.get("items_per_page", 10)
+        pagination_enabled = menu.get("pagination_enabled", True)
+        items_per_page = menu.get("items_per_page", 10)
         
         if pagination_enabled:
             categories, total_pages, _ = self._paginate_categories(all_categories, page, items_per_page)
@@ -113,7 +105,6 @@ class MenuHandler:
             categories = all_categories
             total_pages = 1
         
-        # 从菜单配置读取所有样式
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = menu.get("title_color", "#E6B800")
         title_size = menu.get("title_size", 56)
@@ -128,13 +119,8 @@ class MenuHandler:
         footer_color = menu.get("footer_color", "#666666")
         footer_size = menu.get("footer_size", 28)
         border_color = menu.get("border_color", "#333355")
+        css_zoom = menu.get("css_zoom", 2.0)
         
-        # 全局配置
-        padding_body = config.get("padding_body", "20px")
-        css_zoom = config.get("css_zoom", 2.0)
-        menu_max_width = config.get("menu_max_width", 600)
-        
-        # 构建背景样式
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
@@ -145,10 +131,7 @@ class MenuHandler:
                 overlay_color = menu.get("overlay_color", "#000000")
                 overlay_opacity = menu.get("overlay_opacity", 0.5)
                 overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
-                if debug:
-                    logger.info(f"[DEBUG] 背景图片: {bg_image}, 遮罩: {overlay_color} {overlay_opacity}")
         
-        # 构建分类HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
@@ -194,18 +177,10 @@ class MenuHandler:
                 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
                 body {{
                     font-family: "Microsoft YaHei", sans-serif;
-                    background-color: transparent;
-                    padding: {padding_body};
-                    min-height: 100vh;
                     zoom: {css_zoom};
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
                 }}
                 .menu-container {{
-                    width: 100%;
-                    max-width: {menu_max_width}px;
-                    margin: 0 auto;
+                    display: inline-block;
                     position: relative;
                     {bg_style}
                     padding: 40px 50px;
@@ -362,15 +337,3 @@ class MenuHandler:
             cat_map[cat_name]["items"].append(item_data["item"])
         
         return paginated_categories, total_pages, total_items
-
-    def _is_at_me(self, event: AstrMessageEvent) -> bool:
-        message_obj = event.message_obj
-        if message_obj and hasattr(message_obj, 'message'):
-            for segment in message_obj.message:
-                if hasattr(segment, 'type') and segment.type == "At":
-                    qq = getattr(segment, 'qq', None)
-                    if qq:
-                        self_id = event.get_self_id()
-                        if str(qq) == str(self_id):
-                            return True
-        return False
