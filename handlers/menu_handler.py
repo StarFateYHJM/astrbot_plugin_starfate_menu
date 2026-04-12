@@ -133,7 +133,7 @@ class MenuHandler:
         bg_image = menu.get("background_image", "")
         
         if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
+            bg_style += f" background-image: url('{bg_image}'); background-size: auto; background-position: left top; background-repeat: no-repeat;"
             if menu.get("background_overlay", True):
                 overlay_color = menu.get("overlay_color", "#000000")
                 overlay_opacity = menu.get("overlay_opacity", 0.5)
@@ -187,13 +187,10 @@ class MenuHandler:
                     border: 0;
                     box-sizing: border-box;
                 }}
-                html {{
-                    width: max-content;
-                    height: max-content;
+                html, body {{
+                    display: inline-block;
                 }}
                 body {{
-                    width: max-content;
-                    height: max-content;
                     font-family: "Microsoft YaHei", sans-serif;
                     zoom: {css_zoom};
                     background-color: transparent;
