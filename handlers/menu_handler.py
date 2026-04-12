@@ -2,6 +2,7 @@
 
 import re
 import json
+import hashlib
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
@@ -10,15 +11,19 @@ class MenuHandler:
     
     def __init__(self, plugin):
         self.plugin = plugin
+        self._cache = {}
 
     def _log(self, msg: str):
         if self.plugin.debug:
             logger.info(f"[DEBUG] {msg}")
 
+    def _hash(self, menu: dict) -> str:
+        data = json.dumps(menu, sort_keys=True, ensure_ascii=False)
+        return hashlib.md5(data.encode()).hexdigest()[:8]
+
     async def handle(self, event: AstrMessageEvent, page: int = None, menu_id: str = None):
         raw = event.message_str.strip()
         cfg = self.plugin.config
-        
         self._log(f"请求: {raw}")
         
         triggered, req_id = self._match(raw, cfg.get("trigger_commands", ["/menu"]))
@@ -35,23 +40,28 @@ class MenuHandler:
             return
         
         try:
+            h = self._hash(menu)
+            if h in self._cache:
+                self._log(f"缓存命中: {h}")
+                yield event.image_result(self._cache[h])
+                return
+            
+            self._log(f"渲染: {h}")
             html = self._build(menu)
             url = await self.plugin.html_render(html, {"full_page": True})
+            self._cache[h] = url
             logger.info("图片已生成")
             yield event.image_result(url)
         except Exception as e:
             logger.error(f"渲染失败: {e}")
-            if self.plugin.debug:
-                import traceback
-                logger.error(traceback.format_exc())
             yield event.plain_result(f"渲染失败: {e}")
 
     def _match(self, raw: str, triggers: list) -> tuple:
         for t in triggers:
             c = t.lstrip('/')
             if re.match(rf'^(/{c}|{c})(\s|$)', raw, re.I):
-                parts = raw.split(maxsplit=1)
-                return True, parts[1].strip() if len(parts) > 1 else None
+                p = raw.split(maxsplit=1)
+                return True, p[1].strip() if len(p) > 1 else None
         return False, None
 
     def _select(self, menus: list, req_id: str = None) -> dict:
@@ -66,13 +76,7 @@ class MenuHandler:
 
     def _build(self, m: dict) -> str:
         bg = m.get("background_image", "")
-        overlay = ""
-        if bg and m.get("background_overlay", True):
-            overlay = f'<div class="overlay" style="background:{m.get("overlay_color","#000")};opacity:{m.get("overlay_opacity",0.5)}"></div>'
-        
-        sub = ""
-        if s := m.get("subtext_content", ""):
-            sub = f'<div class="subtext" style="color:{m.get("subtext_color","#888")};font-size:{m.get("subtext_size","14px")}">{s}</div>'
+        overlay = f'<div class="overlay" style="background:{m.get("overlay_color","#000")};opacity:{m.get("overlay_opacity",0.5)}"></div>' if bg and m.get("background_overlay", True) else ""
         
         return f'''<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -96,10 +100,9 @@ body{{font-family:"Microsoft YaHei",sans-serif;zoom:{m.get("css_zoom",2)};backgr
 .content table{{width:100%;border-collapse:collapse}}
 .content th,.content td{{border:1px solid {m.get("border_color","#333")};padding:10px 15px}}
 .content hr{{border:none;border-top:2px solid {m.get("border_color","#333")};margin:30px 0}}
-.subtext{{text-align:right;margin-top:20px;font-style:italic}}
 </style></head>
 <body><div class="bg-layer" id="bgLayer"></div>{overlay}
-<div class="menu-container"><div class="content" id="content"></div>{sub}</div>
+<div class="menu-container"><div class="content" id="content"></div></div>
 <script>
 (function(){{
     document.getElementById('content').innerHTML = marked.parse({json.dumps(m.get("content",""))});
