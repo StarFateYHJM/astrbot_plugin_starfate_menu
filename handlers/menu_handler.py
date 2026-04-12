@@ -11,79 +11,139 @@ class MenuHandler:
         self.menu_manager = menu_manager
     
     async def handle(self, event: AstrMessageEvent, page: int = None, menu_id: str = None):
-        # 尝试从消息对象获取原始文本
         raw_msg = event.message_str.strip()
-        
-        # 如果 message_str 没有斜杠，尝试从原始消息对象获取
-        if not raw_msg.startswith('/'):
-            try:
-                message_obj = event.message_obj
-                if hasattr(message_obj, 'raw_message'):
-                    raw_msg = message_obj.raw_message.strip()
-                elif hasattr(message_obj, 'message'):
-                    # 从消息链中提取文本
-                    for seg in message_obj.message:
-                        if hasattr(seg, 'type') and seg.type == 'text':
-                            raw_msg = seg.data.get('text', '').strip()
-                            break
-            except:
-                pass
-        
-        msg = raw_msg.lower()
         config = self.plugin.config
         debug = config.get("debug_mode", False)
         user_id = str(event.get_sender_id())
         
         if debug:
-            logger.info(f"收到菜单请求: 用户={user_id}, 原始消息='{raw_msg}'")
+            logger.info("=" * 50)
+            logger.info(f"[DEBUG] 收到消息: user={user_id}, raw_msg='{raw_msg}'")
+            logger.info(f"[DEBUG] event.message_str: '{event.message_str}'")
+            logger.info(f"[DEBUG] page参数: {page}, menu_id参数: {menu_id}")
+        
+        # 尝试从消息对象获取原始文本
+        if not raw_msg.startswith('/'):
+            try:
+                message_obj = event.message_obj
+                if debug:
+                    logger.info(f"[DEBUG] message_obj类型: {type(message_obj)}")
+                    logger.info(f"[DEBUG] message_obj属性: {[attr for attr in dir(message_obj) if not attr.startswith('_')]}")
+                
+                if hasattr(message_obj, 'raw_message'):
+                    raw_msg = message_obj.raw_message.strip()
+                    if debug:
+                        logger.info(f"[DEBUG] 从raw_message获取: '{raw_msg}'")
+                elif hasattr(message_obj, 'message'):
+                    for seg in message_obj.message:
+                        if debug:
+                            logger.info(f"[DEBUG] 消息段类型: {getattr(seg, 'type', 'unknown')}")
+                        if hasattr(seg, 'type') and seg.type == 'text':
+                            raw_msg = seg.data.get('text', '').strip()
+                            if debug:
+                                logger.info(f"[DEBUG] 从text段获取: '{raw_msg}'")
+                            break
+            except Exception as e:
+                if debug:
+                    logger.error(f"[DEBUG] 获取原始消息失败: {e}")
+        
+        if debug:
+            logger.info(f"[DEBUG] 最终使用的消息: '{raw_msg}'")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
+        
+        if debug:
+            logger.info(f"[DEBUG] 触发命令列表: {trigger_commands}")
         
         group_id = event.get_group_id()
         is_group = bool(group_id)
         
+        if debug:
+            logger.info(f"[DEBUG] 群聊: {is_group}, group_id: {group_id}")
+        
         triggered = False
         requested_menu_id = menu_id
+        matched_cmd = None
         
         for cmd in trigger_commands:
             cmd_lower = cmd.lower()
-            if raw_msg.lower() == cmd_lower or raw_msg.lower().startswith(cmd_lower + " "):
+            cmd_no_slash = cmd_lower.lstrip('/')
+            raw_lower = raw_msg.lower()
+            
+            if debug:
+                logger.info(f"[DEBUG] 检查命令: cmd='{cmd}', raw_lower='{raw_lower}'")
+            
+            if (raw_lower == cmd_lower or 
+                raw_lower == cmd_no_slash or 
+                raw_lower.startswith(cmd_lower + " ") or 
+                raw_lower.startswith(cmd_no_slash + " ")):
+                
                 triggered = True
+                matched_cmd = cmd
                 if not requested_menu_id:
                     parts = raw_msg.split(maxsplit=1)
                     if len(parts) > 1:
                         requested_menu_id = parts[1].strip()
                 break
         
+        if debug:
+            logger.info(f"[DEBUG] 触发结果: triggered={triggered}, matched_cmd='{matched_cmd}', requested_menu_id='{requested_menu_id}'")
+        
         if not triggered and page is None:
+            if debug:
+                logger.info("[DEBUG] 未触发菜单，退出处理")
             return
         
         if is_group:
             group_require_at = config.get("group_require_at", True)
-            if group_require_at and not self._is_at_me(event):
-                return
+            if debug:
+                logger.info(f"[DEBUG] 群聊需要@: {group_require_at}")
+            
+            if group_require_at:
+                at_result = self._is_at_me(event)
+                if debug:
+                    logger.info(f"[DEBUG] @检测结果: {at_result}")
+                if not at_result:
+                    if debug:
+                        logger.info("[DEBUG] 未@机器人，退出处理")
+                    return
         
         menu_sets = config.get("menu_sets", [])
+        if debug:
+            logger.info(f"[DEBUG] 菜单配置数量: {len(menu_sets)}")
+        
         if not menu_sets:
+            if debug:
+                logger.warning("[DEBUG] 没有菜单配置")
             yield event.plain_result("暂无菜单配置，请先在 WebUI 中添加")
             return
         
         selected_menu = None
-        for menu in menu_sets:
+        for i, menu in enumerate(menu_sets):
+            if debug:
+                logger.info(f"[DEBUG] 菜单[{i}]: name='{menu.get('menu_name')}', id='{menu.get('menu_id')}', default={menu.get('is_default')}")
             if requested_menu_id and menu.get("menu_id") == requested_menu_id:
                 selected_menu = menu
+                if debug:
+                    logger.info(f"[DEBUG] 通过ID匹配到菜单: {menu.get('menu_name')}")
                 break
         
         if not selected_menu:
             for menu in menu_sets:
                 if menu.get("is_default", False):
                     selected_menu = menu
+                    if debug:
+                        logger.info(f"[DEBUG] 使用默认菜单: {menu.get('menu_name')}")
                     break
         
         if not selected_menu:
             selected_menu = menu_sets[0]
+            if debug:
+                logger.info(f"[DEBUG] 使用第一个菜单: {selected_menu.get('menu_name')}")
         
         if requested_menu_id and requested_menu_id != selected_menu.get("menu_id"):
+            if debug:
+                logger.warning(f"[DEBUG] 请求的菜单ID '{requested_menu_id}' 与选中菜单 '{selected_menu.get('menu_id')}' 不匹配")
             yield event.plain_result(f"未找到菜单 '{requested_menu_id}'")
             return
         
@@ -91,8 +151,13 @@ class MenuHandler:
         
         if page is None:
             page = await self.plugin.get_kv_data(f"menu_page_{user_id}_{selected_menu.get('menu_id')}", 0)
+            if debug:
+                logger.info(f"[DEBUG] 从KV获取页码: {page}")
         
         try:
+            if debug:
+                logger.info("[DEBUG] 开始构建HTML...")
+            
             html = self._build_html(config, selected_menu, debug, page, user_id)
             
             render_options = {
@@ -101,9 +166,14 @@ class MenuHandler:
             }
             
             if debug:
-                logger.info(f"渲染参数: width={render_options['width']}, page={page}")
+                logger.info(f"[DEBUG] 渲染参数: {render_options}")
+                logger.info(f"[DEBUG] HTML长度: {len(html)} 字符")
             
             image_url = await self.plugin.html_render(html, {}, options=render_options)
+            
+            if debug:
+                logger.info(f"[DEBUG] 图片生成成功: {image_url}")
+            
             logger.info("菜单图片已生成")
             yield event.image_result(image_url)
             
@@ -111,31 +181,54 @@ class MenuHandler:
             logger.error(f"菜单渲染失败: {e}")
             if debug:
                 import traceback
-                logger.error(traceback.format_exc())
+                logger.error(f"[DEBUG] 异常堆栈:\n{traceback.format_exc()}")
             yield event.plain_result(f"菜单渲染失败: {e}")
+        finally:
+            if debug:
+                logger.info("=" * 50)
 
     def _build_html(self, config: dict, menu: dict, debug: bool, page: int, user_id: str) -> str:
+        if debug:
+            logger.info(f"[DEBUG] _build_html: page={page}, user_id={user_id}")
+            logger.info(f"[DEBUG] menu keys: {list(menu.keys())}")
+        
         title = menu.get("title_text") or "功能菜单"
         footer = menu.get("footer_text") or "发送对应命令即可使用功能"
         
+        if debug:
+            logger.info(f"[DEBUG] 标题: '{title}', 底部: '{footer}'")
+        
         raw_categories = menu.get("categories", [])
+        if debug:
+            logger.info(f"[DEBUG] 原始分类数量: {len(raw_categories)}")
+            for i, cat in enumerate(raw_categories):
+                logger.info(f"[DEBUG]   分类[{i}]: '{cat[:50]}...'")
+        
         all_categories = self._parse_categories(raw_categories, debug)
+        
+        if debug:
+            logger.info(f"[DEBUG] 解析后分类数量: {len(all_categories)}")
+            total_funcs = sum(len(c.get("items", [])) for c in all_categories)
+            logger.info(f"[DEBUG] 总功能项数量: {total_funcs}")
         
         pagination_enabled = config.get("pagination_enabled", True)
         items_per_page = config.get("items_per_page", 10)
+        
+        if debug:
+            logger.info(f"[DEBUG] 分页启用: {pagination_enabled}, 每页数量: {items_per_page}")
         
         if pagination_enabled:
             categories, total_pages, total_items = self._paginate_categories(
                 all_categories, page, items_per_page
             )
+            if debug:
+                logger.info(f"[DEBUG] 分页结果: 当前页={page+1}, 总页数={total_pages}, 本页功能数={total_items}")
         else:
             categories = all_categories
             total_pages = 1
             total_items = sum(len(c.get("items", [])) for c in all_categories)
         
-        if debug:
-            logger.info(f"分页: 第 {page + 1}/{total_pages} 页, 功能项: {total_items}")
-        
+        # 样式配置
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
         title_size = config.get("title_size", 56)
@@ -153,17 +246,24 @@ class MenuHandler:
         padding_body = config.get("padding_body", "60px 80px")
         css_zoom = config.get("css_zoom", 2.0)
         
+        if debug:
+            logger.info(f"[DEBUG] 样式: bg={bg_color}, zoom={css_zoom}, width={config.get('viewport_width', 300)}")
+        
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
         if bg_image:
             bg_path = self.plugin.get_background_path(bg_image)
+            if debug:
+                logger.info(f"[DEBUG] 背景图片: {bg_image} -> {bg_path}")
             if bg_path:
                 bg_style += f" background-image: url('file://{bg_path}'); background-size: cover; background-position: center;"
                 if menu.get("background_overlay", True):
                     overlay_color = menu.get("overlay_color", "#000000")
                     overlay_opacity = menu.get("overlay_opacity", 0.5)
                     overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+                    if debug:
+                        logger.info(f"[DEBUG] 遮罩: color={overlay_color}, opacity={overlay_opacity}")
         
         categories_html = ""
         for cat in categories:
@@ -309,24 +409,39 @@ class MenuHandler:
         '''
 
     def _parse_categories(self, categories: list, debug: bool) -> list:
+        if debug:
+            logger.info(f"[DEBUG] _parse_categories: 输入数量={len(categories)}")
+        
         result = []
-        for cat_str in categories:
+        for i, cat_str in enumerate(categories):
             if not cat_str or not cat_str.strip():
+                if debug:
+                    logger.warning(f"[DEBUG] 分类[{i}] 为空，跳过")
                 continue
+            
+            if debug:
+                logger.info(f"[DEBUG] 解析分类[{i}]: '{cat_str[:80]}...'")
+            
             parts = cat_str.split("|")
             if len(parts) < 3:
                 if debug:
-                    logger.warning(f"分类格式错误，已跳过: '{cat_str}'")
+                    logger.warning(f"[DEBUG] 分类[{i}] 格式错误，parts={len(parts)}，跳过")
                 continue
             
             cat_name = parts[0].strip()
             cat_icon = parts[1].strip()
             func_str = parts[2].strip()
             
+            if debug:
+                logger.info(f"[DEBUG]   分类名: '{cat_name}', 图标: '{cat_icon}'")
+            
             items = []
             if func_str:
                 func_parts = func_str.split(";")
-                for func in func_parts:
+                if debug:
+                    logger.info(f"[DEBUG]   功能数量: {len(func_parts)}")
+                
+                for j, func in enumerate(func_parts):
                     if not func.strip():
                         continue
                     func_items = func.split(",")
@@ -336,20 +451,27 @@ class MenuHandler:
                             "command": func_items[1].strip(),
                             "description": func_items[2].strip()
                         })
+                        if debug:
+                            logger.info(f"[DEBUG]     功能[{j}]: name='{func_items[0].strip()}', cmd='{func_items[1].strip()}'")
                     elif len(func_items) == 2:
                         items.append({
                             "name": func_items[0].strip(),
                             "command": func_items[1].strip(),
                             "description": ""
                         })
+                        if debug:
+                            logger.info(f"[DEBUG]     功能[{j}]: name='{func_items[0].strip()}', cmd='{func_items[1].strip()}' (无描述)")
                     elif debug:
-                        logger.warning(f"功能格式错误: '{func}'")
+                        logger.warning(f"[DEBUG]     功能[{j}] 格式错误: '{func}'")
             
             result.append({
                 "name": cat_name,
                 "icon": cat_icon,
                 "items": items
             })
+        
+        if debug:
+            logger.info(f"[DEBUG] _parse_categories: 输出数量={len(result)}")
         
         return result
 
