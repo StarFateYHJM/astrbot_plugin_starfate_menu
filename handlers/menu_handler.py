@@ -46,7 +46,7 @@ class MenuHandler:
             render_options = {
                 "width": 600,
                 "full_page": True,
-                "scale": "device"
+                "scale": "device",
                 "device_scale_factor": 2.0
             }
             
