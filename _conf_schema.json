@@ -1,0 +1,53 @@
+{
+    "trigger_commands": {
+        "type": "list",
+        "description": "触发菜单的命令（私聊/群聊通用）",
+        "items": {"type": "string"},
+        "default": ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"]
+    },
+    "group_require_at": {
+        "type": "bool",
+        "description": "群聊是否需要@机器人",
+        "default": true
+    },
+    "image_width": {
+        "type": "int",
+        "description": "图片宽度（像素）",
+        "default": 600
+    },
+    "image_background": {
+        "type": "string",
+        "description": "背景颜色（十六进制）",
+        "default": "#1A1A2E"
+    },
+    "title_color": {
+        "type": "string",
+        "description": "标题颜色",
+        "default": "#E6B800"
+    },
+    "category_color": {
+        "type": "string",
+        "description": "分类标题颜色",
+        "default": "#00D2FF"
+    },
+    "item_name_color": {
+        "type": "string",
+        "description": "功能名称颜色",
+        "default": "#FFFFFF"
+    },
+    "command_color": {
+        "type": "string",
+        "description": "命令颜色",
+        "default": "#888888"
+    },
+    "description_color": {
+        "type": "string",
+        "description": "描述颜色",
+        "default": "#AAAAAA"
+    },
+    "footer_color": {
+        "type": "string",
+        "description": "底部文字颜色",
+        "default": "#666666"
+    }
+}
