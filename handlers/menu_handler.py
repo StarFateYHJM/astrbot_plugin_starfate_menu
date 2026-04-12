@@ -44,11 +44,8 @@ class MenuHandler:
             html = self._build_html(menu_data, config)
             
             render_options = {
-                "width": 600,
-                "full_page": True,
-                "context_options": {
-                    "device_scale_factor": 2.0
-                }
+                "width": 300,
+                "full_page": True
             }
             
             image_url = await self.plugin.html_render(html, {}, options=render_options)
@@ -60,7 +57,7 @@ class MenuHandler:
             yield event.plain_result(f"❌ StarFate 菜单渲染失败: {e}")
     
     def _build_html(self, menu_data: dict, config: dict) -> str:
-        """构建 HTML 模板"""
+        """构建 HTML 模板（2倍放大版）"""
         title = menu_data.get("title", "🌟 StarFate 功能菜单")
         footer = menu_data.get("footer", "发送对应命令即可使用功能")
         categories = menu_data.get("categories", [])
@@ -104,7 +101,7 @@ class MenuHandler:
             </div>
             '''
         
-        # 完整 HTML
+        # 完整 HTML（所有尺寸 × 2）
         return f'''
         <!DOCTYPE html>
         <html>
@@ -119,64 +116,65 @@ class MenuHandler:
                 body {{
                     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
                     background-color: {bg_color};
-                    padding: 30px 40px;
+                    padding: 60px 80px;
                     min-height: 100vh;
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;
+                    zoom: 2;
                 }}
                 .menu-container {{
-                    max-width: 600px;
+                    max-width: 1200px;
                     margin: 0 auto;
                 }}
                 .menu-title {{
-                    font-size: 28px;
+                    font-size: 56px;
                     font-weight: bold;
                     color: {title_color};
                     text-align: center;
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
-                    border-bottom: 1px solid #333355;
+                    margin-bottom: 40px;
+                    padding-bottom: 30px;
+                    border-bottom: 2px solid #333355;
                 }}
                 .category {{
-                    margin-bottom: 25px;
+                    margin-bottom: 50px;
                 }}
                 .category-title {{
-                    font-size: 20px;
+                    font-size: 40px;
                     font-weight: bold;
                     color: {category_color};
-                    margin-bottom: 15px;
+                    margin-bottom: 30px;
                 }}
                 .menu-item {{
-                    margin-bottom: 12px;
-                    padding-left: 20px;
+                    margin-bottom: 24px;
+                    padding-left: 40px;
                 }}
                 .item-row {{
                     display: flex;
                     justify-content: space-between;
                     align-items: baseline;
-                    margin-bottom: 4px;
+                    margin-bottom: 8px;
                 }}
                 .item-name {{
-                    font-size: 16px;
+                    font-size: 32px;
                     color: {item_name_color};
                     font-weight: 500;
                 }}
                 .item-command {{
-                    font-size: 14px;
+                    font-size: 28px;
                     color: {command_color};
                     font-family: "Consolas", "Monaco", monospace;
                 }}
                 .item-desc {{
-                    font-size: 13px;
+                    font-size: 26px;
                     color: {desc_color};
-                    padding-left: 15px;
+                    padding-left: 30px;
                 }}
                 .menu-footer {{
-                    margin-top: 30px;
-                    padding-top: 15px;
-                    border-top: 1px solid #333355;
+                    margin-top: 60px;
+                    padding-top: 30px;
+                    border-top: 2px solid #333355;
                     text-align: center;
-                    font-size: 14px;
+                    font-size: 28px;
                     color: {footer_color};
                 }}
             </style>
