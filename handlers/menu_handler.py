@@ -120,16 +120,12 @@ class MenuHandler:
         border_color = menu.get("border_color", "#333355")
         css_zoom = menu.get("css_zoom", 2.0)
         
-        bg_style = f"background-color: {bg_color};"
-        overlay_html = ""
         bg_image = menu.get("background_image", "")
-        
-        if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;"
-            if menu.get("background_overlay", True):
-                overlay_color = menu.get("overlay_color", "#000000")
-                overlay_opacity = menu.get("overlay_opacity", 0.5)
-                overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+        overlay_html = ""
+        if bg_image and menu.get("background_overlay", True):
+            overlay_color = menu.get("overlay_color", "#000000")
+            overlay_opacity = menu.get("overlay_opacity", 0.5)
+            overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
         
         categories_html = ""
         for cat in categories:
@@ -176,38 +172,35 @@ class MenuHandler:
                 * {{
                     margin: 0;
                     padding: 0;
-                    border: 0;
                     box-sizing: border-box;
-                }}
-                html, body {{
-                    display: inline-block;
                 }}
                 body {{
                     font-family: "Microsoft YaHei", sans-serif;
                     zoom: {css_zoom};
-                    background-color: transparent;
+                    background-color: {bg_color};
                     position: relative;
                 }}
-                #bg-layer {{
-                    position: fixed;
+                .bg-image {{
+                    position: absolute;
                     top: 0; left: 0;
                     width: 100%; height: 100%;
-                    {bg_style}
+                    background-image: url('{bg_image}');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
                     z-index: 0;
                 }}
-                .menu-container {{
-                    display: inline-block;
-                    position: relative;
-                    padding: 40px 50px;
-                    z-index: 2;
-                }}
                 .overlay {{
-                    position: fixed;
+                    position: absolute;
                     top: 0; left: 0;
                     width: 100%; height: 100%;
                     pointer-events: none;
                     z-index: 1;
-                    background-color: transparent;
+                }}
+                .menu-container {{
+                    position: relative;
+                    z-index: 2;
+                    padding: 40px 50px;
                 }}
                 .menu-title {{
                     font-size: {title_size}px;
@@ -267,7 +260,7 @@ class MenuHandler:
             </style>
         </head>
         <body>
-            <div id="bg-layer"></div>
+            <div class="bg-image"></div>
             {overlay_html}
             <div class="menu-container">
                 <div class="menu-title">{title}</div>
@@ -283,18 +276,8 @@ class MenuHandler:
                         img.onload = function() {{
                             var width = this.width;
                             var height = this.height;
-                            var body = document.body;
-                            var bgLayer = document.getElementById('bg-layer');
-                            var overlay = document.querySelector('.overlay');
-                            
-                            body.style.width = width + 'px';
-                            body.style.height = height + 'px';
-                            bgLayer.style.width = width + 'px';
-                            bgLayer.style.height = height + 'px';
-                            if (overlay) {{
-                                overlay.style.width = width + 'px';
-                                overlay.style.height = height + 'px';
-                            }}
+                            document.body.style.width = width + 'px';
+                            document.body.style.height = height + 'px';
                         }};
                         img.src = bgImage;
                     }}
