@@ -9,7 +9,7 @@ from .core.menu_manager import MenuManager
 from .core.image_renderer import ImageRenderer
 
 
-@register("astrbot_plugin_starfate_menu", "YHJM", "StarFate 功能菜单", "1.0.0")
+@register("astrbot_plugin_starfate_menu", "TF-MYMSI", "StarFate 功能菜单", "1.0.0")
 class StarFateMenuPlugin(Star):
     def __init__(self, context: Context, config: dict = None):
         super().__init__(context)
@@ -68,9 +68,15 @@ class StarFateMenuPlugin(Star):
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
         """消息监听 - 处理菜单触发"""
+        has_result = False
         async for result in self.handler.handle(event):
             if result:
+                has_result = True
                 yield result
+        
+        # 如果产出了结果，阻止事件继续传递（避免触发 LLM）
+        if has_result:
+            event.stop_event()
 
     @filter.command("sfmenu_reload")
     async def cmd_reload(self, event: AstrMessageEvent):
