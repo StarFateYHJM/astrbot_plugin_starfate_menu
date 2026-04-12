@@ -32,25 +32,6 @@
                         "description": "是否为默认菜单",
                         "default": false
                     },
-                    "pagination_enabled": {
-                        "type": "bool",
-                        "description": "是否启用分页",
-                        "default": true
-                    },
-                    "items_per_page": {
-                        "type": "int",
-                        "description": "每页功能项数量",
-                        "default": 10,
-                        "min": 5,
-                        "max": 30
-                    },
-                    "columns": {
-                        "type": "int",
-                        "description": "功能项显示列数，1为单列，2为双列，3为三列",
-                        "default": 1,
-                        "min": 1,
-                        "max": 3
-                    },
                     "css_zoom": {
                         "type": "float",
                         "description": "CSS缩放倍数",
@@ -63,16 +44,6 @@
                         "type": "string",
                         "description": "对齐方式：left(左)、center(中)、right(右)",
                         "default": "center"
-                    },
-                    "title_text": {
-                        "type": "string",
-                        "description": "菜单标题",
-                        "default": "功能菜单"
-                    },
-                    "footer_text": {
-                        "type": "string",
-                        "description": "底部文字",
-                        "default": "发送对应命令即可使用功能"
                     },
                     "background_color": {
                         "type": "string",
@@ -102,88 +73,40 @@
                         "max": 1.0,
                         "step": 0.1
                     },
-                    "title_color": {
+                    "text_color": {
                         "type": "string",
-                        "description": "标题颜色",
-                        "default": "#E6B800"
-                    },
-                    "title_size": {
-                        "type": "int",
-                        "description": "标题字号",
-                        "default": 56,
-                        "min": 20,
-                        "max": 100
-                    },
-                    "category_color": {
-                        "type": "string",
-                        "description": "分类标题颜色",
-                        "default": "#00D2FF"
-                    },
-                    "category_size": {
-                        "type": "int",
-                        "description": "分类标题字号",
-                        "default": 40,
-                        "min": 16,
-                        "max": 80
-                    },
-                    "item_name_color": {
-                        "type": "string",
-                        "description": "功能名称颜色",
+                        "description": "正文文字颜色",
                         "default": "#FFFFFF"
                     },
-                    "item_name_size": {
-                        "type": "int",
-                        "description": "功能名称字号",
-                        "default": 32,
-                        "min": 14,
-                        "max": 60
-                    },
-                    "command_color": {
+                    "link_color": {
                         "type": "string",
-                        "description": "命令颜色",
-                        "default": "#888888"
+                        "description": "链接颜色",
+                        "default": "#00D2FF"
                     },
-                    "command_size": {
-                        "type": "int",
-                        "description": "命令字号",
-                        "default": 28,
-                        "min": 12,
-                        "max": 50
-                    },
-                    "description_color": {
+                    "code_bg_color": {
                         "type": "string",
-                        "description": "描述颜色",
-                        "default": "#AAAAAA"
+                        "description": "代码块背景颜色",
+                        "default": "#2D2D2D"
                     },
-                    "description_size": {
-                        "type": "int",
-                        "description": "描述字号",
-                        "default": 26,
-                        "min": 12,
-                        "max": 50
-                    },
-                    "footer_color": {
+                    "code_text_color": {
                         "type": "string",
-                        "description": "底部颜色",
-                        "default": "#666666"
-                    },
-                    "footer_size": {
-                        "type": "int",
-                        "description": "底部字号",
-                        "default": 28,
-                        "min": 12,
-                        "max": 50
+                        "description": "代码块文字颜色",
+                        "default": "#E6E6E6"
                     },
                     "border_color": {
                         "type": "string",
-                        "description": "分割线颜色",
+                        "description": "分割线/表格边框颜色",
                         "default": "#333355"
                     },
-                    "categories": {
-                        "type": "list",
-                        "description": "分类列表，格式：分类名 | 图标 | 功能1名称,命令,描述;功能2名称,命令,描述",
-                        "items": {"type": "string"},
-                        "default": []
+                    "padding_body": {
+                        "type": "string",
+                        "description": "页面内边距",
+                        "default": "40px 50px"
+                    },
+                    "content": {
+                        "type": "text",
+                        "description": "菜单内容，支持 Markdown 语法",
+                        "default": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n- **帮助** `/help` - 获取使用帮助\n\n## 娱乐功能\n\n| 功能 | 命令 | 描述 |\n|------|------|------|\n| 抽签 | `/draw` | 随机抽取运势签 |\n| 猜数字 | `/guess` | 猜数字小游戏 |\n| 笑话 | `/joke` | 随机讲一个笑话 |\n\n---\n\n*发送对应命令即可使用功能*"
                     }
                 }
             }
@@ -193,32 +116,20 @@
                 "menu_name": "默认菜单",
                 "menu_id": "default",
                 "is_default": true,
-                "pagination_enabled": true,
-                "items_per_page": 10,
-                "columns": 1,
                 "css_zoom": 2.0,
                 "container_align": "center",
-                "title_text": "功能菜单",
-                "footer_text": "发送对应命令即可使用功能",
                 "background_color": "#1A1A2E",
                 "background_image": "",
                 "background_overlay": true,
                 "overlay_color": "#000000",
                 "overlay_opacity": 0.5,
-                "title_color": "#E6B800",
-                "title_size": 56,
-                "category_color": "#00D2FF",
-                "category_size": 40,
-                "item_name_color": "#FFFFFF",
-                "item_name_size": 32,
-                "command_color": "#888888",
-                "command_size": 28,
-                "description_color": "#AAAAAA",
-                "description_size": 26,
-                "footer_color": "#666666",
-                "footer_size": 28,
+                "text_color": "#FFFFFF",
+                "link_color": "#00D2FF",
+                "code_bg_color": "#2D2D2D",
+                "code_text_color": "#E6E6E6",
                 "border_color": "#333355",
-                "categories": []
+                "padding_body": "40px 50px",
+                "content": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n- **帮助** `/help` - 获取使用帮助\n\n## 娱乐功能\n\n| 功能 | 命令 | 描述 |\n|------|------|------|\n| 抽签 | `/draw` | 随机抽取运势签 |\n| 猜数字 | `/guess` | 猜数字小游戏 |\n| 笑话 | `/joke` | 随机讲一个笑话 |\n\n---\n\n*发送对应命令即可使用功能*"
             }
         ]
     }
