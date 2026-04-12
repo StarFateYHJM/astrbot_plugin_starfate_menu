@@ -1,4 +1,5 @@
 import copy
+import math
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
@@ -9,26 +10,35 @@ class MenuHandler:
         self.plugin = plugin
         self.menu_manager = menu_manager
     
-    async def handle(self, event: AstrMessageEvent):
+    async def handle(self, event: AstrMessageEvent, page: int = None, menu_id: str = None):
         msg = event.message_str.strip()
         config = self.plugin.config
         debug = config.get("debug_mode", False)
+        user_id = str(event.get_sender_id())
         
         if debug:
-            logger.info(f"收到菜单请求: 用户={event.get_sender_id()}, 消息={msg}")
+            logger.info(f"收到菜单请求: 用户={user_id}, 消息={msg}")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
         
         group_id = event.get_group_id()
         is_group = bool(group_id)
         
+        # 解析命令中的菜单ID
         triggered = False
+        requested_menu_id = menu_id
+        
         for cmd in trigger_commands:
-            if msg == cmd or msg.startswith(cmd + " ") or msg == cmd.lstrip('/'):
+            cmd_lower = cmd.lower()
+            if msg == cmd_lower or msg.startswith(cmd_lower + " "):
                 triggered = True
+                if not requested_menu_id:
+                    parts = msg.split(maxsplit=1)
+                    if len(parts) > 1:
+                        requested_menu_id = parts[1].strip()
                 break
         
-        if not triggered:
+        if not triggered and page is None:
             return
         
         if is_group:
@@ -36,13 +46,50 @@ class MenuHandler:
             if group_require_at and not self._is_at_me(event):
                 return
         
+        # 获取菜单配置
+        menu_sets = config.get("menu_sets", [])
+        if not menu_sets:
+            yield event.plain_result("暂无菜单配置，请先在 WebUI 中添加")
+            return
+        
+        # 选择菜单
+        selected_menu = None
+        for menu in menu_sets:
+            if requested_menu_id and menu.get("menu_id") == requested_menu_id:
+                selected_menu = menu
+                break
+        
+        if not selected_menu:
+            for menu in menu_sets:
+                if menu.get("is_default", False):
+                    selected_menu = menu
+                    break
+        
+        if not selected_menu:
+            selected_menu = menu_sets[0]
+        
+        if requested_menu_id and requested_menu_id != selected_menu.get("menu_id"):
+            yield event.plain_result(f"未找到菜单 '{requested_menu_id}'")
+            return
+        
+        # 保存当前使用的菜单ID
+        await self.plugin.put_kv_data(f"menu_current_{user_id}", selected_menu.get("menu_id", "default"))
+        
+        # 获取页码
+        if page is None:
+            page = await self.plugin.get_kv_data(f"menu_page_{user_id}_{selected_menu.get('menu_id')}", 0)
+        
         try:
-            html = self._build_html(config, debug)
+            html = self._build_html(config, selected_menu, debug, page, user_id)
             
+            global_styles = config.get("global_styles", {})
             render_options = {
-                "width": config.get("viewport_width", 300),
+                "width": global_styles.get("viewport_width", 300),
                 "full_page": True
             }
+            
+            if debug:
+                logger.info(f"渲染参数: width={render_options['width']}, page={page}")
             
             image_url = await self.plugin.html_render(html, {}, options=render_options)
             logger.info("菜单图片已生成")
@@ -50,37 +97,76 @@ class MenuHandler:
             
         except Exception as e:
             logger.error(f"菜单渲染失败: {e}")
+            if debug:
+                import traceback
+                logger.error(traceback.format_exc())
             yield event.plain_result(f"菜单渲染失败: {e}")
-    
-    def _build_html(self, config: dict, debug: bool) -> str:
-        title = config.get("title_text") or "StarFate 功能菜单"
-        footer = config.get("footer_text") or "发送对应命令即可使用功能"
+    def _build_html(self, config: dict, menu: dict, debug: bool, page: int, user_id: str) -> str:
+        global_styles = config.get("global_styles", {})
         
-        categories = config.get("menu_categories", [])
-        categories = self._normalize_categories(categories, debug)
+        title = menu.get("title_text") or "StarFate 功能菜单"
+        footer = menu.get("footer_text") or "发送对应命令即可使用功能"
         
-        bg_color = config.get("background_color", "#1A1A2E")
-        title_color = config.get("title_color", "#E6B800")
-        title_size = config.get("title_size", 56)
-        category_color = config.get("category_color", "#00D2FF")
-        category_size = config.get("category_size", 40)
-        item_name_color = config.get("item_name_color", "#FFFFFF")
-        item_name_size = config.get("item_name_size", 32)
-        command_color = config.get("command_color", "#888888")
-        command_size = config.get("command_size", 28)
-        desc_color = config.get("description_color", "#AAAAAA")
-        desc_size = config.get("description_size", 26)
-        footer_color = config.get("footer_color", "#666666")
-        footer_size = config.get("footer_size", 28)
-        border_color = config.get("border_color", "#333355")
-        padding_body = config.get("padding_body", "60px 80px")
-        css_zoom = config.get("css_zoom", 2.0)
+        # 解析分类和功能
+        raw_categories = menu.get("categories", [])
+        all_categories = self._normalize_categories(raw_categories, debug)
         
+        # 分页处理
+        pagination_enabled = config.get("pagination_enabled", True)
+        items_per_page = config.get("items_per_page", 10)
+        
+        if pagination_enabled:
+            categories, total_pages, total_items = self._paginate_categories(
+                all_categories, page, items_per_page
+            )
+        else:
+            categories = all_categories
+            total_pages = 1
+            total_items = sum(len(c.get("items", [])) for c in all_categories)
+        
+        if debug:
+            logger.info(f"分页: 第 {page + 1}/{total_pages} 页, 功能项: {total_items}")
+        
+        # 样式配置
+        bg_color = menu.get("background_color", "#1A1A2E")
+        title_color = global_styles.get("title_color", "#E6B800")
+        title_size = global_styles.get("title_size", 56)
+        category_color = global_styles.get("category_color", "#00D2FF")
+        category_size = global_styles.get("category_size", 40)
+        item_name_color = global_styles.get("item_name_color", "#FFFFFF")
+        item_name_size = global_styles.get("item_name_size", 32)
+        command_color = global_styles.get("command_color", "#888888")
+        command_size = global_styles.get("command_size", 28)
+        desc_color = global_styles.get("description_color", "#AAAAAA")
+        desc_size = global_styles.get("description_size", 26)
+        footer_color = global_styles.get("footer_color", "#666666")
+        footer_size = global_styles.get("footer_size", 28)
+        border_color = global_styles.get("border_color", "#333355")
+        padding_body = global_styles.get("padding_body", "60px 80px")
+        css_zoom = global_styles.get("css_zoom", 2.0)
+        
+        # 背景样式
+        bg_style = f"background-color: {bg_color};"
+        overlay_html = ""
+        bg_image = menu.get("background_image", "")
+        if bg_image:
+            bg_path = self.plugin.get_background_path(bg_image)
+            if bg_path:
+                bg_style += f" background-image: url('file://{bg_path}'); background-size: cover; background-position: center;"
+                if menu.get("background_overlay", True):
+                    overlay_color = menu.get("overlay_color", "#000000")
+                    overlay_opacity = menu.get("overlay_opacity", 0.5)
+                    overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+        
+        # 构建分类HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
             cat_icon = cat.get("icon", "📌")
             items = cat.get("items", [])
+            
+            if not items:
+                continue
             
             items_html = ""
             for item in items:
@@ -98,13 +184,17 @@ class MenuHandler:
                 </div>
                 '''
             
-            if items_html:
-                categories_html += f'''
-                <div class="category">
-                    <div class="category-title">{cat_icon} {cat_name}</div>
-                    {items_html}
-                </div>
-                '''
+            categories_html += f'''
+            <div class="category">
+                <div class="category-title">{cat_icon} {cat_name}</div>
+                {items_html}
+            </div>
+            '''
+        
+        # 页码信息
+        page_info = ""
+        if pagination_enabled and total_pages > 1:
+            page_info = f'<div class="page-info">第 {page + 1}/{total_pages} 页 | 回复"下一页"或"上一页"翻页</div>'
         
         return f'''
         <!DOCTYPE html>
@@ -119,16 +209,28 @@ class MenuHandler:
                 }}
                 body {{
                     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
-                    background-color: {bg_color};
+                    {bg_style}
                     padding: {padding_body};
                     min-height: 100vh;
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;
                     zoom: {css_zoom};
+                    position: relative;
+                }}
+                .overlay {{
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                    z-index: 1;
                 }}
                 .menu-container {{
                     max-width: 1200px;
                     margin: 0 auto;
+                    position: relative;
+                    z-index: 2;
                 }}
                 .menu-title {{
                     font-size: {title_size}px;
@@ -181,13 +283,21 @@ class MenuHandler:
                     font-size: {footer_size}px;
                     color: {footer_color};
                 }}
+                .page-info {{
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: {footer_size}px;
+                    color: {footer_color};
+                }}
             </style>
         </head>
         <body>
+            {overlay_html}
             <div class="menu-container">
                 <div class="menu-title">{title}</div>
                 {categories_html}
                 <div class="menu-footer">{footer}</div>
+                {page_info}
             </div>
         </body>
         </html>
@@ -195,7 +305,6 @@ class MenuHandler:
     
     def _normalize_categories(self, categories: list, debug: bool) -> list:
         result = []
-        
         for cat in categories:
             cat_name = cat.get("category_name", "")
             cat_icon = cat.get("category_icon", "📌")
@@ -222,8 +331,44 @@ class MenuHandler:
                 "icon": cat_icon,
                 "items": items
             })
-        
         return result
+    
+    def _paginate_categories(self, categories: list, page: int, per_page: int):
+        """将分类中的功能项分页"""
+        # 收集所有功能项
+        all_items = []
+        for cat in categories:
+            for item in cat.get("items", []):
+                all_items.append({
+                    "category": cat.get("name", ""),
+                    "icon": cat.get("icon", "📌"),
+                    "item": item
+                })
+        
+        total_items = len(all_items)
+        total_pages = max(1, math.ceil(total_items / per_page))
+        page = max(0, min(page, total_pages - 1))
+        
+        start = page * per_page
+        end = start + per_page
+        page_items = all_items[start:end]
+        
+        # 重新组织成分组分类
+        paginated_categories = []
+        cat_map = {}
+        
+        for item_data in page_items:
+            cat_name = item_data["category"]
+            if cat_name not in cat_map:
+                cat_map[cat_name] = {
+                    "name": cat_name,
+                    "icon": item_data["icon"],
+                    "items": []
+                }
+                paginated_categories.append(cat_map[cat_name])
+            cat_map[cat_name]["items"].append(item_data["item"])
+        
+        return paginated_categories, total_pages, total_items
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         message_obj = event.message_obj
