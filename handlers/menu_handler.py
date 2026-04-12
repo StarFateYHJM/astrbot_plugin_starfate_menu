@@ -12,6 +12,11 @@ class MenuHandler:
     async def handle(self, event: AstrMessageEvent):
         msg = event.message_str.strip()
         config = self.plugin.config
+        debug = config.get("debug_mode", False)
+        
+        if debug:
+            logger.info("========== 收到菜单请求 ==========")
+            logger.info(f"用户: {event.get_sender_id()} | 群聊: {bool(event.get_group_id())} | 消息: {msg}")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
         
@@ -22,6 +27,8 @@ class MenuHandler:
         for cmd in trigger_commands:
             if msg == cmd or msg.startswith(cmd + " ") or msg == cmd.lstrip('/'):
                 triggered = True
+                if debug:
+                    logger.info(f"触发命令: {cmd}")
                 break
         
         if not triggered:
@@ -30,15 +37,21 @@ class MenuHandler:
         if is_group:
             group_require_at = config.get("group_require_at", True)
             if group_require_at and not self._is_at_me(event):
+                if debug:
+                    logger.info("群聊未艾特机器人，忽略请求")
                 return
         
         try:
-            html = self._build_html(config)
+            html = self._build_html(config, debug)
             
             render_options = {
                 "width": config.get("viewport_width", 300),
                 "full_page": True
             }
+            
+            if debug:
+                logger.info(f"渲染参数: width={render_options['width']}, full_page=True")
+                logger.info(f"HTML 长度: {len(html)} 字符")
             
             image_url = await self.plugin.html_render(html, {}, options=render_options)
             logger.info("菜单图片已生成")
@@ -46,14 +59,25 @@ class MenuHandler:
             
         except Exception as e:
             logger.error(f"菜单渲染失败: {e}")
+            if debug:
+                import traceback
+                logger.error(traceback.format_exc())
             yield event.plain_result(f"菜单渲染失败: {e}")
+        
+        finally:
+            if debug:
+                logger.info("========== 菜单请求处理完成 ==========")
     
-    def _build_html(self, config: dict) -> str:
+    def _build_html(self, config: dict, debug: bool) -> str:
         title = config.get("title_text") or "StarFate 功能菜单"
         footer = config.get("footer_text") or "发送对应命令即可使用功能"
         
+        if debug:
+            logger.info(f"标题: {title}")
+            logger.info(f"底部: {footer}")
+        
         categories = config.get("menu_categories", [])
-        categories = self._normalize_categories(categories)
+        categories = self._normalize_categories(categories, debug)
         
         bg_color = config.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
@@ -188,32 +212,48 @@ class MenuHandler:
         </html>
         '''
     
-    def _normalize_categories(self, categories: list) -> list:
-        """将 WebUI 配置格式转换为内部格式"""
+    def _normalize_categories(self, categories: list, debug: bool) -> list:
         result = []
-        for cat in categories:
+        if debug:
+            logger.info(f"分类数量: {len(categories)}")
+        
+        for idx, cat in enumerate(categories):
+            cat_name = cat.get("category_name", "")
+            cat_icon = cat.get("category_icon", "📌")
             function_items = cat.get("function_items", [])
+            
+            if debug:
+                logger.info(f"  [分类{idx+1}] 名称: {cat_name} | 图标: {cat_icon} | 原始功能数: {len(function_items)}")
+            
             items = []
             for item_str in function_items:
                 parts = item_str.split("|")
                 if len(parts) >= 3:
-                    items.append({
-                        "name": parts[0].strip(),
-                        "command": parts[1].strip(),
-                        "description": parts[2].strip()
-                    })
+                    name = parts[0].strip()
+                    command = parts[1].strip()
+                    desc = parts[2].strip()
+                    items.append({"name": name, "command": command, "description": desc})
+                    if debug:
+                        logger.info(f"    功能: {name} | 命令: {command}")
                 elif len(parts) == 2:
-                    items.append({
-                        "name": parts[0].strip(),
-                        "command": parts[1].strip(),
-                        "description": ""
-                    })
+                    name = parts[0].strip()
+                    command = parts[1].strip()
+                    items.append({"name": name, "command": command, "description": ""})
+                    if debug:
+                        logger.info(f"    功能: {name} | 命令: {command} | (无描述)")
+                else:
+                    if debug:
+                        logger.warning(f"    功能项格式错误，已跳过: '{item_str}'")
+            
+            if debug:
+                logger.info(f"    有效功能数: {len(items)}")
             
             result.append({
-                "name": cat.get("category_name", ""),
-                "icon": cat.get("category_icon", "📌"),
+                "name": cat_name,
+                "icon": cat_icon,
                 "items": items
             })
+        
         return result
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
