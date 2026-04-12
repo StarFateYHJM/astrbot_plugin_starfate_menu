@@ -98,10 +98,30 @@
                         "description": "页面内边距",
                         "default": "40px 50px"
                     },
+                    "base_font_size": {
+                        "type": "string",
+                        "description": "基础字号，如 16px、1em",
+                        "default": "16px"
+                    },
+                    "h1_font_size": {
+                        "type": "string",
+                        "description": "一级标题字号",
+                        "default": "2.5em"
+                    },
+                    "h2_font_size": {
+                        "type": "string",
+                        "description": "二级标题字号",
+                        "default": "2em"
+                    },
+                    "h3_font_size": {
+                        "type": "string",
+                        "description": "三级标题字号",
+                        "default": "1.5em"
+                    },
                     "content": {
                         "type": "text",
                         "description": "菜单内容，支持 Markdown 语法",
-                        "default": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n\n---\n\n*发送对应命令即可使用功能*"
+                        "default": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n- **帮助** `/help` - 获取使用帮助\n\n## 娱乐功能\n\n| 功能 | 命令 | 描述 |\n|------|------|------|\n| 抽签 | `/draw` | 随机抽取运势签 |\n| 猜数字 | `/guess` | 猜数字小游戏 |\n| 笑话 | `/joke` | 随机讲一个笑话 |\n\n---\n\n*发送对应命令即可使用功能*"
                     }
                 }
             }
@@ -123,7 +143,11 @@
                 "code_text_color": "#E6E6E6",
                 "border_color": "#333355",
                 "padding_body": "40px 50px",
-                "content": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n\n---\n\n*发送对应命令即可使用功能*"
+                "base_font_size": "16px",
+                "h1_font_size": "2.5em",
+                "h2_font_size": "2em",
+                "h3_font_size": "1.5em",
+                "content": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n- **帮助** `/help` - 获取使用帮助\n\n## 娱乐功能\n\n| 功能 | 命令 | 描述 |\n|------|------|------|\n| 抽签 | `/draw` | 随机抽取运势签 |\n| 猜数字 | `/guess` | 猜数字小游戏 |\n| 笑话 | `/joke` | 随机讲一个笑话 |\n\n---\n\n*发送对应命令即可使用功能*"
             }
         ]
     }
