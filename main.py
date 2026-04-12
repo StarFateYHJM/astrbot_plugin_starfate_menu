@@ -23,10 +23,7 @@ class StarFateMenuPlugin(Star):
         if isinstance(data_path, str):
             data_path = Path(data_path)
         self.data_dir = data_path / "plugin_data" / self.name
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.backgrounds_dir = self.data_dir / "backgrounds"
-        self.backgrounds_dir.mkdir(exist_ok=True)
+        self.data_dir.mkdir(parents=True, exist_ok=True)        
         
         self.menu_file = self.data_dir / "menu_content.json"
         self._init_default_menu()
@@ -36,7 +33,6 @@ class StarFateMenuPlugin(Star):
         
         if self.debug:
             logger.info(f"数据目录: {self.data_dir}")
-            logger.info(f"背景图片目录: {self.backgrounds_dir}")
         
         logger.info(f"{self.display_name} 插件已加载")
 
@@ -98,9 +94,7 @@ class StarFateMenuPlugin(Star):
             yield event.plain_result("权限不足")
             return
         
-        # 刷新插件配置
         await self._reload_config()
-        
         self.menu_manager.reload()
         
         if self.debug:
@@ -109,9 +103,7 @@ class StarFateMenuPlugin(Star):
         yield event.plain_result("菜单配置已重载")
 
     async def _reload_config(self):
-        """重新加载插件配置"""
         try:
-            # 方法1：从插件管理器获取
             star_manager = self.context.get_star_manager()
             if star_manager:
                 plugin = star_manager.get_star(self.name)
@@ -120,7 +112,6 @@ class StarFateMenuPlugin(Star):
                     self.debug = self.config.get("debug_mode", False)
                     return
             
-            # 方法2：从配置文件直接读取
             config_file = self.data_dir / "config.json"
             if config_file.exists():
                 with open(config_file, "r", encoding="utf-8") as f:
@@ -164,14 +155,6 @@ class StarFateMenuPlugin(Star):
         )
         user_id = str(event.get_sender_id())
         return user_id in admin_list
-
-    def get_background_path(self, filename: str) -> str:
-        if not filename:
-            return ""
-        bg_path = self.backgrounds_dir / filename
-        if bg_path.exists():
-            return str(bg_path.absolute())
-        return ""
 
     async def terminate(self):
         logger.info(f"{self.display_name} 插件已卸载")
