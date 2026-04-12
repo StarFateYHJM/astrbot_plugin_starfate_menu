@@ -206,7 +206,6 @@ class MenuHandler:
                     margin: 0 auto;
                     position: relative;
                     {bg_style}
-                    padding: 40px 50px;
                 }}
                 .overlay {{
                     position: absolute;
@@ -215,9 +214,10 @@ class MenuHandler:
                     pointer-events: none;
                     z-index: 1;
                 }}
-                .menu-title, .category, .menu-footer, .page-info {{
+                .menu-content {{
                     position: relative;
                     z-index: 2;
+                    padding: 40px 50px;
                 }}
                 .menu-title {{
                     font-size: {title_size}px;
@@ -279,10 +279,12 @@ class MenuHandler:
         <body>
             <div class="menu-container" id="menuContainer">
                 {overlay_html}
-                <div class="menu-title">{title}</div>
-                {categories_html}
-                <div class="menu-footer">{footer}</div>
-                {page_info}
+                <div class="menu-content">
+                    <div class="menu-title">{title}</div>
+                    {categories_html}
+                    <div class="menu-footer">{footer}</div>
+                    {page_info}
+                </div>
             </div>
             <script>
                 (function() {{
