@@ -1,62 +1,25 @@
 {
     "trigger_commands": {
         "type": "list",
-        "description": "触发菜单的命令",
+        "description": "全局触发命令",
         "items": {"type": "string"},
         "default": ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"]
-    },
-    "group_require_at": {
-        "type": "bool",
-        "description": "群聊是否需要艾特机器人",
-        "default": true
     },
     "debug_mode": {
         "type": "bool",
         "description": "调试模式",
         "default": false
     },
-    "pagination_enabled": {
-        "type": "bool",
-        "description": "是否启用分页",
-        "default": true
-    },
-    "items_per_page": {
-        "type": "int",
-        "description": "每页功能项数量",
-        "default": 10,
-        "min": 5,
-        "max": 30
-    },
     "viewport_width": {
         "type": "int",
-        "description": "截图视口宽度，建议比 menu_max_width 大 100-200",
+        "description": "截图视口宽度",
         "default": 800,
         "min": 400,
         "max": 2000
     },
-    "css_zoom": {
-        "type": "float",
-        "description": "CSS缩放倍数",
-        "default": 2.0,
-        "min": 1.0,
-        "max": 4.0,
-        "step": 0.5
-    },
-    "menu_max_width": {
-        "type": "int",
-        "description": "菜单最大宽度",
-        "default": 600,
-        "min": 300,
-        "max": 1600
-    },
-    "padding_body": {
-        "type": "string",
-        "description": "页面内边距",
-        "default": "20px"
-    },
     "menu_sets": {
         "type": "template_list",
-        "description": "多菜单配置",
+        "description": "多菜单配置，每个菜单完全独立",
         "templates": {
             "default": {
                 "name": "新菜单",
@@ -68,13 +31,33 @@
                     },
                     "menu_id": {
                         "type": "string",
-                        "description": "菜单ID",
+                        "description": "菜单ID（/menu id）",
                         "default": "default"
                     },
                     "is_default": {
                         "type": "bool",
                         "description": "是否为默认菜单",
                         "default": false
+                    },
+                    "pagination_enabled": {
+                        "type": "bool",
+                        "description": "是否启用分页",
+                        "default": true
+                    },
+                    "items_per_page": {
+                        "type": "int",
+                        "description": "每页功能项数量",
+                        "default": 10,
+                        "min": 5,
+                        "max": 30
+                    },
+                    "css_zoom": {
+                        "type": "float",
+                        "description": "CSS缩放倍数",
+                        "default": 2.0,
+                        "min": 1.0,
+                        "max": 4.0,
+                        "step": 0.5
                     },
                     "title_text": {
                         "type": "string",
@@ -205,6 +188,9 @@
                 "menu_name": "默认菜单",
                 "menu_id": "default",
                 "is_default": true,
+                "pagination_enabled": true,
+                "items_per_page": 10,
+                "css_zoom": 2.0,
                 "title_text": "功能菜单",
                 "footer_text": "发送对应命令即可使用功能",
                 "background_color": "#1A1A2E",
