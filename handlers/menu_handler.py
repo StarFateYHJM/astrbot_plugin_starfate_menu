@@ -1,5 +1,5 @@
-from astrbot.api.message import MessageChain, Plain, Image
-from astrbot.api.plugin import AstrMessageEvent
+from astrbot.core.message import MessageChain, Plain, Image
+from astrbot.core.event import AstrMessageEvent
 from ..core.menu_manager import MenuManager
 from ..core.image_renderer import ImageRenderer
 
@@ -41,7 +41,9 @@ class MenuHandler:
                 return
         
         # 渲染并发送菜单
-        yield await self._send_menu(event, config)
+        result = await self._send_menu(event, config)
+        if result:
+            yield result
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         """检查是否@了机器人"""
