@@ -1,3 +1,4 @@
+import copy
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
@@ -44,7 +45,7 @@ class MenuHandler:
             html = self._build_html(menu_data, config)
             
             render_options = {
-                "width": 300,
+                "width": config.get("viewport_width", 300),
                 "full_page": True
             }
             
@@ -57,19 +58,32 @@ class MenuHandler:
             yield event.plain_result(f"❌ StarFate 菜单渲染失败: {e}")
     
     def _build_html(self, menu_data: dict, config: dict) -> str:
-        """构建 HTML 模板（2倍放大版）"""
-        title = menu_data.get("title", "🌟 StarFate 功能菜单")
-        footer = menu_data.get("footer", "发送对应命令即可使用功能")
+        """构建 HTML 模板（从配置读取所有样式）"""
+        title = config.get("title_text", menu_data.get("title", "🌟 StarFate 功能菜单"))
+        footer = config.get("footer_text", menu_data.get("footer", "发送对应命令即可使用功能"))
         categories = menu_data.get("categories", [])
         
-        # 获取配色
-        bg_color = config.get("image_background", "#1A1A2E")
+        # 合并手动添加的功能项
+        custom_items = config.get("custom_items", [])
+        categories = self._merge_custom_items(categories, custom_items)
+        
+        # 从配置读取所有样式
+        bg_color = config.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
+        title_size = config.get("title_size", 56)
         category_color = config.get("category_color", "#00D2FF")
+        category_size = config.get("category_size", 40)
         item_name_color = config.get("item_name_color", "#FFFFFF")
+        item_name_size = config.get("item_name_size", 32)
         command_color = config.get("command_color", "#888888")
+        command_size = config.get("command_size", 28)
         desc_color = config.get("description_color", "#AAAAAA")
+        desc_size = config.get("description_size", 26)
         footer_color = config.get("footer_color", "#666666")
+        footer_size = config.get("footer_size", 28)
+        border_color = config.get("border_color", "#333355")
+        padding_body = config.get("padding_body", "60px 80px")
+        css_zoom = config.get("css_zoom", 2.0)
         
         # 构建分类 HTML
         categories_html = ""
@@ -101,7 +115,7 @@ class MenuHandler:
             </div>
             '''
         
-        # 完整 HTML（所有尺寸 × 2）
+        # 完整 HTML（所有样式从配置读取）
         return f'''
         <!DOCTYPE html>
         <html>
@@ -116,30 +130,30 @@ class MenuHandler:
                 body {{
                     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
                     background-color: {bg_color};
-                    padding: 60px 80px;
+                    padding: {padding_body};
                     min-height: 100vh;
                     -webkit-font-smoothing: antialiased;
                     -moz-osx-font-smoothing: grayscale;
-                    zoom: 2;
+                    zoom: {css_zoom};
                 }}
                 .menu-container {{
                     max-width: 1200px;
                     margin: 0 auto;
                 }}
                 .menu-title {{
-                    font-size: 56px;
+                    font-size: {title_size}px;
                     font-weight: bold;
                     color: {title_color};
                     text-align: center;
                     margin-bottom: 40px;
                     padding-bottom: 30px;
-                    border-bottom: 2px solid #333355;
+                    border-bottom: 2px solid {border_color};
                 }}
                 .category {{
                     margin-bottom: 50px;
                 }}
                 .category-title {{
-                    font-size: 40px;
+                    font-size: {category_size}px;
                     font-weight: bold;
                     color: {category_color};
                     margin-bottom: 30px;
@@ -155,26 +169,26 @@ class MenuHandler:
                     margin-bottom: 8px;
                 }}
                 .item-name {{
-                    font-size: 32px;
+                    font-size: {item_name_size}px;
                     color: {item_name_color};
                     font-weight: 500;
                 }}
                 .item-command {{
-                    font-size: 28px;
+                    font-size: {command_size}px;
                     color: {command_color};
                     font-family: "Consolas", "Monaco", monospace;
                 }}
                 .item-desc {{
-                    font-size: 26px;
+                    font-size: {desc_size}px;
                     color: {desc_color};
                     padding-left: 30px;
                 }}
                 .menu-footer {{
                     margin-top: 60px;
                     padding-top: 30px;
-                    border-top: 2px solid #333355;
+                    border-top: 2px solid {border_color};
                     text-align: center;
-                    font-size: 28px;
+                    font-size: {footer_size}px;
                     color: {footer_color};
                 }}
             </style>
@@ -188,6 +202,29 @@ class MenuHandler:
         </body>
         </html>
         '''
+    
+    def _merge_custom_items(self, categories: list, custom_items: list) -> list:
+        """将手动添加的功能项合并到对应分类"""
+        result = copy.deepcopy(categories)
+        
+        for item in custom_items:
+            cat_name = item.get("category", "其他功能")
+            icon = item.get("icon", "🔧")
+            
+            # 查找或创建分类
+            cat = next((c for c in result if c.get("name") == cat_name), None)
+            if not cat:
+                cat = {"name": cat_name, "icon": icon, "items": []}
+                result.append(cat)
+            
+            # 添加功能项
+            cat["items"].append({
+                "name": item.get("display_name", "新功能"),
+                "command": item.get("command", ""),
+                "description": item.get("description", "")
+            })
+        
+        return result
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         """检查是否@了机器人"""
