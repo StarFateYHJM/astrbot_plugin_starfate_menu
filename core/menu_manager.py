@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
+from astrbot.api import logger
 
 
 class MenuManager:
@@ -16,8 +17,9 @@ class MenuManager:
         try:
             with open(self.menu_file, "r", encoding="utf-8") as f:
                 self._data = json.load(f)
+            logger.info(f"菜单配置已加载: {self.menu_file}")
         except Exception as e:
-            print(f"[StarFate MenuManager] 加载菜单失败: {e}")
+            logger.error(f"加载菜单失败: {e}")
             self._data = self._get_default_data()
     
     def _get_default_data(self) -> Dict[str, Any]:
