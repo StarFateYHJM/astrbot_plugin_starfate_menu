@@ -1,9 +1,11 @@
 import json
-import os
 from pathlib import Path
-from astrbot.api.plugin import Plugin, AstrMessageEvent, CommandResult
-from astrbot.api.filter import filter, EventMessageType
-from astrbot.api.message import MessageChain, Plain, Image
+from astrbot.core.plugin import Plugin
+from astrbot.core.event import AstrMessageEvent
+from astrbot.core.message import MessageChain, Plain, Image
+from astrbot.core.filter import filter, EventMessageType
+from astrbot.core.command import CommandResult
+
 from .handlers.menu_handler import MenuHandler
 from .core.menu_manager import MenuManager
 from .core.image_renderer import ImageRenderer
@@ -59,9 +61,9 @@ class StarFateMenuPlugin(Plugin):
     @filter.event_message_type(EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
         """消息监听"""
-        result = await self.handler.handle(event)
-        if result:
-            yield result
+        async for result in self.handler.handle(event):
+            if result:
+                yield result
 
     async def on_command(self, event: AstrMessageEvent, command: str):
         """命令处理"""
