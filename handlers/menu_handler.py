@@ -46,12 +46,13 @@ class MenuHandler:
             render_options = {
                 "width": 600,
                 "full_page": True,
-                "scale": "device",
-                "device_scale_factor": 2.0
+                "context_options": {
+                    "device_scale_factor": 2.0
+                }
             }
             
             image_url = await self.plugin.html_render(html, {}, options=render_options)
-            logger.info("菜单图片已生成（高清模式）")
+            logger.info("菜单图片已生成")
             yield event.image_result(image_url)
             
         except Exception as e:
