@@ -1,4 +1,5 @@
 import copy
+import json
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
@@ -189,12 +190,22 @@ class MenuHandler:
         '''
     
     def _normalize_categories(self, categories: list) -> list:
+        """将 WebUI 配置格式转换为内部格式"""
         result = []
         for cat in categories:
+            function_items = cat.get("function_items", "[]")
+            if isinstance(function_items, str):
+                try:
+                    items = json.loads(function_items)
+                except:
+                    items = []
+            else:
+                items = function_items
+            
             result.append({
                 "name": cat.get("category_name", ""),
                 "icon": cat.get("category_icon", "📌"),
-                "items": cat.get("function_items", [])
+                "items": items
             })
         return result
     
