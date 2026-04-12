@@ -45,8 +45,8 @@ class MenuHandler:
             
             # 高清渲染参数
             render_options = {
-                "width": 600,
-                "device_scale_factor": 2.0,  # 2倍缩放，清晰度翻倍
+                "width": 800,                    # 提高宽度
+                "device_scale_factor": 3.0,      # 3倍缩放（文件会变大）
                 "full_page": True,
             }
             
