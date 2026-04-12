@@ -1,24 +1,24 @@
 import json
 from pathlib import Path
-from astrbot.core.plugin import Plugin
-from astrbot.core.event import AstrMessageEvent
-from astrbot.core.message import MessageChain, Plain, Image
-from astrbot.core.filter import filter, EventMessageType
-from astrbot.core.command import CommandResult
+from astrbot.api.event import filter, AstrMessageEvent
+from astrbot.api.star import Context, Star, register
+from astrbot.api.message import MessageChain, Plain, Image
+from astrbot.api import logger
 
 from .handlers.menu_handler import MenuHandler
 from .core.menu_manager import MenuManager
 from .core.image_renderer import ImageRenderer
 
 
-class StarFateMenuPlugin(Plugin):
-    def __init__(self, context):
+@register("astrbot_plugin_starfate_menu", "TF-MYMSI", "StarFate 功能菜单", "1.0.0")
+class StarFateMenuPlugin(Star):
+    def __init__(self, context: Context):
         super().__init__(context)
         self.name = "astrbot_plugin_starfate_menu"
         self.display_name = "StarFate 功能菜单"
         
         # 数据目录
-        self.data_dir = Path(context.get_data_dir()) / "plugins" / self.name
+        self.data_dir = Path(context.plugin_data_dir) / self.name
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         # 菜单文件路径
@@ -31,6 +31,8 @@ class StarFateMenuPlugin(Plugin):
         self.menu_manager = MenuManager(self.menu_file)
         self.renderer = ImageRenderer(self.data_dir)
         self.handler = MenuHandler(self, self.menu_manager, self.renderer)
+        
+        logger.info(f"{self.display_name} 插件已加载")
 
     def _init_default_menu(self):
         """初始化默认菜单文件"""
@@ -57,30 +59,32 @@ class StarFateMenuPlugin(Plugin):
             }
             with open(self.menu_file, "w", encoding="utf-8") as f:
                 json.dump(default_menu, f, ensure_ascii=False, indent=2)
+            logger.info(f"已创建默认菜单文件: {self.menu_file}")
 
-    @filter.event_message_type(EventMessageType.ALL)
+    @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
-        """消息监听"""
+        """消息监听 - 处理菜单触发"""
         async for result in self.handler.handle(event):
             if result:
                 yield result
 
-    async def on_command(self, event: AstrMessageEvent, command: str):
-        """命令处理"""
-        # 管理命令
-        if command == "sfmenu_reload":
-            if not await self._check_admin(event):
-                yield CommandResult().message("❌ 权限不足")
-                return
-            self.menu_manager.reload()
-            yield CommandResult().message("✅ StarFate 菜单配置已重载")
-            
-        elif command == "sfmenu_export":
-            if not await self._check_admin(event):
-                yield CommandResult().message("❌ 权限不足")
-                return
-            content = self.menu_manager.export()
-            yield CommandResult().message(f"```json\n{content}\n```")
+    @filter.command("sfmenu_reload")
+    async def cmd_reload(self, event: AstrMessageEvent):
+        """重载菜单配置（仅管理员）"""
+        if not await self._check_admin(event):
+            yield event.plain_result("❌ 权限不足")
+            return
+        self.menu_manager.reload()
+        yield event.plain_result("✅ StarFate 菜单配置已重载")
+
+    @filter.command("sfmenu_export")
+    async def cmd_export(self, event: AstrMessageEvent):
+        """导出菜单配置（仅管理员）"""
+        if not await self._check_admin(event):
+            yield event.plain_result("❌ 权限不足")
+            return
+        content = self.menu_manager.export()
+        yield event.plain_result(f"```json\n{content}\n```")
 
     async def _check_admin(self, event: AstrMessageEvent) -> bool:
         """检查管理员权限"""
@@ -88,3 +92,7 @@ class StarFateMenuPlugin(Plugin):
         admin_list = config.get("admin_list", [])
         user_id = str(event.get_sender_id())
         return user_id in admin_list
+
+    async def terminate(self):
+        """插件卸载时调用"""
+        logger.info(f"{self.display_name} 插件已卸载")
