@@ -194,7 +194,7 @@ class MenuHandler:
             result.append({
                 "name": cat.get("category_name", ""),
                 "icon": cat.get("category_icon", "📌"),
-                "items": cat.get("items", [])
+                "items": cat.get("function_items", [])
             })
         return result
     
