@@ -113,7 +113,7 @@ class MenuHandler:
             categories = all_categories
             total_pages = 1
         
-        # 从菜单配置读取所有样式（每个菜单独立）
+        # 从菜单配置读取所有样式
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = menu.get("title_color", "#E6B800")
         title_size = menu.get("title_size", 56)
@@ -133,19 +133,22 @@ class MenuHandler:
         padding_body = config.get("padding_body", "20px")
         css_zoom = config.get("css_zoom", 2.0)
         menu_max_width = config.get("menu_max_width", 600)
-        menu_min_height = config.get("menu_min_height", 400)
         
+        # 构建背景样式
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
         
         if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;"
+            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
             if menu.get("background_overlay", True):
                 overlay_color = menu.get("overlay_color", "#000000")
                 overlay_opacity = menu.get("overlay_opacity", 0.5)
                 overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+                if debug:
+                    logger.info(f"[DEBUG] 背景图片: {bg_image}, 遮罩: {overlay_color} {overlay_opacity}")
         
+        # 构建分类HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
@@ -200,12 +203,12 @@ class MenuHandler:
                     justify-content: center;
                 }}
                 .menu-container {{
-                    width: auto;
+                    width: 100%;
                     max-width: {menu_max_width}px;
-                    min-height: {menu_min_height}px;
                     margin: 0 auto;
                     position: relative;
                     {bg_style}
+                    padding: 40px 50px;
                 }}
                 .overlay {{
                     position: absolute;
@@ -214,10 +217,9 @@ class MenuHandler:
                     pointer-events: none;
                     z-index: 1;
                 }}
-                .menu-content {{
+                .menu-title, .category, .menu-footer, .page-info {{
                     position: relative;
                     z-index: 2;
-                    padding: 40px 50px;
                 }}
                 .menu-title {{
                     font-size: {title_size}px;
@@ -277,42 +279,13 @@ class MenuHandler:
             </style>
         </head>
         <body>
-            <div class="menu-container" id="menuContainer">
+            <div class="menu-container">
                 {overlay_html}
-                <div class="menu-content">
-                    <div class="menu-title">{title}</div>
-                    {categories_html}
-                    <div class="menu-footer">{footer}</div>
-                    {page_info}
-                </div>
+                <div class="menu-title">{title}</div>
+                {categories_html}
+                <div class="menu-footer">{footer}</div>
+                {page_info}
             </div>
-            <script>
-                (function() {{
-                    var bgImage = '{bg_image}';
-                    if (bgImage) {{
-                        var img = new Image();
-                        img.onload = function() {{
-                            var container = document.getElementById('menuContainer');
-                            var naturalWidth = this.width;
-                            var naturalHeight = this.height;
-                            var maxWidth = {menu_max_width};
-                            
-                            var finalWidth = naturalWidth;
-                            var finalHeight = naturalHeight;
-                            
-                            if (naturalWidth > maxWidth) {{
-                                finalWidth = maxWidth;
-                                finalHeight = Math.round(naturalHeight * (maxWidth / naturalWidth));
-                            }}
-                            
-                            container.style.width = finalWidth + 'px';
-                            container.style.minHeight = finalHeight + 'px';
-                            container.style.backgroundSize = finalWidth + 'px ' + finalHeight + 'px';
-                        }};
-                        img.src = bgImage;
-                    }}
-                }})();
-            </script>
         </body>
         </html>
         '''
