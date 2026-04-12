@@ -33,7 +33,6 @@ class MenuHandler:
         if debug:
             logger.info(f"[DEBUG] 群聊: {is_group}, group_id: {group_id}")
         
-        # 正则匹配命令
         triggered = False
         requested_menu_id = menu_id
         matched_cmd = None
@@ -78,7 +77,6 @@ class MenuHandler:
             yield event.plain_result("暂无菜单配置")
             return
         
-        # 选择菜单
         selected_menu = None
         for menu in menu_sets:
             if requested_menu_id and menu.get("menu_id") == requested_menu_id:
@@ -107,7 +105,7 @@ class MenuHandler:
             html = self._build_html(config, selected_menu, debug, page)
             
             render_options = {
-                "width": config.get("viewport_width", 300),
+                "width": config.get("viewport_width", 800),
                 "full_page": True
             }
             
@@ -147,6 +145,7 @@ class MenuHandler:
         if debug:
             logger.info(f"[DEBUG] 分页: page={page+1}/{total_pages}")
         
+        # 样式配置
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
         title_size = config.get("title_size", 56)
@@ -161,16 +160,18 @@ class MenuHandler:
         footer_color = config.get("footer_color", "#666666")
         footer_size = config.get("footer_size", 28)
         border_color = config.get("border_color", "#333355")
-        padding_body = config.get("padding_body", "60px 80px")
+        padding_body = config.get("padding_body", "20px")
         css_zoom = config.get("css_zoom", 2.0)
+        menu_max_width = config.get("menu_max_width", 600)
+        menu_min_height = config.get("menu_min_height", 400)
         
-        bg_color = menu.get("background_color", "#1A1A2E")
+        # 背景样式
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
         
         if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center;"
+            bg_style += f" background-image: url('{bg_image}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;"
             if menu.get("background_overlay", True):
                 overlay_color = menu.get("overlay_color", "#000000")
                 overlay_opacity = menu.get("overlay_opacity", 0.5)
@@ -178,6 +179,7 @@ class MenuHandler:
                 if debug:
                     logger.info(f"[DEBUG] 背景图片: {bg_image}, 遮罩: {overlay_color} {overlay_opacity}")
         
+        # 构建分类HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
@@ -223,11 +225,14 @@ class MenuHandler:
                 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
                 body {{
                     font-family: "Microsoft YaHei", sans-serif;
-                    {bg_style}
+                    background-color: transparent;
                     padding: {padding_body};
                     min-height: 100vh;
                     zoom: {css_zoom};
                     position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }}
                 .overlay {{
                     position: fixed;
@@ -236,11 +241,19 @@ class MenuHandler:
                     pointer-events: none;
                     z-index: 1;
                 }}
-                .menu-container {{
-                    max-width: 1200px;
-                    margin: 0 auto;
+                .menu-wrapper {{
                     position: relative;
                     z-index: 2;
+                }}
+                .menu-container {{
+                    width: auto;
+                    max-width: {menu_max_width}px;
+                    min-height: {menu_min_height}px;
+                    margin: 0 auto;
+                    position: relative;
+                    {bg_style}
+                    padding: 40px 50px;
+                    border-radius: 0;
                 }}
                 .menu-title {{
                     font-size: {title_size}px;
@@ -301,12 +314,41 @@ class MenuHandler:
         </head>
         <body>
             {overlay_html}
-            <div class="menu-container">
-                <div class="menu-title">{title}</div>
-                {categories_html}
-                <div class="menu-footer">{footer}</div>
-                {page_info}
+            <div class="menu-wrapper">
+                <div class="menu-container" id="menuContainer">
+                    <div class="menu-title">{title}</div>
+                    {categories_html}
+                    <div class="menu-footer">{footer}</div>
+                    {page_info}
+                </div>
             </div>
+            <script>
+                (function() {{
+                    var bgImage = '{bg_image}';
+                    if (bgImage) {{
+                        var img = new Image();
+                        img.onload = function() {{
+                            var container = document.getElementById('menuContainer');
+                            var naturalWidth = this.width;
+                            var naturalHeight = this.height;
+                            var maxWidth = {menu_max_width};
+                            
+                            var finalWidth = naturalWidth;
+                            var finalHeight = naturalHeight;
+                            
+                            if (naturalWidth > maxWidth) {{
+                                finalWidth = maxWidth;
+                                finalHeight = Math.round(naturalHeight * (maxWidth / naturalWidth));
+                            }}
+                            
+                            container.style.width = finalWidth + 'px';
+                            container.style.minHeight = finalHeight + 'px';
+                            container.style.backgroundSize = '${{finalWidth}}px ${{finalHeight}}px';
+                        }};
+                        img.src = bgImage;
+                    }}
+                }})();
+            </script>
         </body>
         </html>
         '''
