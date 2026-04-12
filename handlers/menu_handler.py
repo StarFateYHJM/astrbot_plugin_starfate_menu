@@ -88,203 +88,221 @@ class MenuHandler:
                 logger.error(traceback.format_exc())
             yield event.plain_result(f"菜单渲染失败: {e}")
 
-    def _build_html(self, config: dict, menu: dict, debug: bool, page: int) -> str:
-        title = menu.get("title_text") or "功能菜单"
-        footer = menu.get("footer_text") or "发送对应命令即可使用功能"
-        
-        raw_categories = menu.get("categories", [])
-        all_categories = self._parse_categories(raw_categories, debug)
-        
-        pagination_enabled = menu.get("pagination_enabled", True)
-        items_per_page = menu.get("items_per_page", 10)
-        
-        if pagination_enabled:
-            categories, total_pages, _ = self._paginate_categories(all_categories, page, items_per_page)
-        else:
-            categories = all_categories
-            total_pages = 1
-        
-        bg_color = menu.get("background_color", "#1A1A2E")
-        title_color = menu.get("title_color", "#E6B800")
-        title_size = menu.get("title_size", 56)
-        category_color = menu.get("category_color", "#00D2FF")
-        category_size = menu.get("category_size", 40)
-        item_name_color = menu.get("item_name_color", "#FFFFFF")
-        item_name_size = menu.get("item_name_size", 32)
-        command_color = menu.get("command_color", "#888888")
-        command_size = menu.get("command_size", 28)
-        desc_color = menu.get("description_color", "#AAAAAA")
-        desc_size = menu.get("description_size", 26)
-        footer_color = menu.get("footer_color", "#666666")
-        footer_size = menu.get("footer_size", 28)
-        border_color = menu.get("border_color", "#333355")
-        css_zoom = menu.get("css_zoom", 2.0)
-        container_align = menu.get("container_align", "center")
-        
-        align_map = {
-            "left": "flex-start",
-            "center": "center",
-            "right": "flex-end"
-        }
-        align_value = align_map.get(container_align, "center")
-        
-        bg_style = f"background-color: {bg_color};"
-        overlay_html = ""
-        bg_image = menu.get("background_image", "")
-        
-        if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
-            if menu.get("background_overlay", True):
-                overlay_color = menu.get("overlay_color", "#000000")
-                overlay_opacity = menu.get("overlay_opacity", 0.5)
-                overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
-        
-        categories_html = ""
-        for cat in categories:
-            cat_name = cat.get("name", "")
-            cat_icon = cat.get("icon", "📌")
-            items = cat.get("items", [])
+        def _build_html(self, config: dict, menu: dict, debug: bool, page: int) -> str:
+            title = menu.get("title_text") or "功能菜单"
+            footer = menu.get("footer_text") or "发送对应命令即可使用功能"
             
-            if not items:
-                continue
+            raw_categories = menu.get("categories", [])
+            all_categories = self._parse_categories(raw_categories, debug)
             
-            items_html = ""
-            for item in items:
-                name = item.get("name", "")
-                command = item.get("command", "")
-                desc = item.get("description", "")
+            pagination_enabled = menu.get("pagination_enabled", True)
+            items_per_page = menu.get("items_per_page", 10)
+            
+            if pagination_enabled:
+                categories, total_pages, _ = self._paginate_categories(all_categories, page, items_per_page)
+            else:
+                categories = all_categories
+                total_pages = 1
+            
+            bg_color = menu.get("background_color", "#1A1A2E")
+            title_color = menu.get("title_color", "#E6B800")
+            title_size = menu.get("title_size", 56)
+            category_color = menu.get("category_color", "#00D2FF")
+            category_size = menu.get("category_size", 40)
+            item_name_color = menu.get("item_name_color", "#FFFFFF")
+            item_name_size = menu.get("item_name_size", 32)
+            command_color = menu.get("command_color", "#888888")
+            command_size = menu.get("command_size", 28)
+            desc_color = menu.get("description_color", "#AAAAAA")
+            desc_size = menu.get("description_size", 26)
+            footer_color = menu.get("footer_color", "#666666")
+            footer_size = menu.get("footer_size", 28)
+            border_color = menu.get("border_color", "#333355")
+            css_zoom = menu.get("css_zoom", 2.0)
+            
+            bg_style = f"background-color: {bg_color};"
+            overlay_html = ""
+            bg_image = menu.get("background_image", "")
+            
+            if bg_image:
+                bg_style += f" background-image: url('{bg_image}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;"
+                if menu.get("background_overlay", True):
+                    overlay_color = menu.get("overlay_color", "#000000")
+                    overlay_opacity = menu.get("overlay_opacity", 0.5)
+                    overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+            
+            categories_html = ""
+            for cat in categories:
+                cat_name = cat.get("name", "")
+                cat_icon = cat.get("icon", "📌")
+                items = cat.get("items", [])
                 
-                items_html += f'''
-                <div class="menu-item">
-                    <div class="item-row">
-                        <span class="item-name">• {name}</span>
-                        <span class="item-command">{command}</span>
+                if not items:
+                    continue
+                
+                items_html = ""
+                for item in items:
+                    name = item.get("name", "")
+                    command = item.get("command", "")
+                    desc = item.get("description", "")
+                    
+                    items_html += f'''
+                    <div class="menu-item">
+                        <div class="item-row">
+                            <span class="item-name">• {name}</span>
+                            <span class="item-command">{command}</span>
+                        </div>
+                        <div class="item-desc">{desc}</div>
                     </div>
-                    <div class="item-desc">{desc}</div>
+                    '''
+                
+                categories_html += f'''
+                <div class="category">
+                    <div class="category-title">{cat_icon} {cat_name}</div>
+                    {items_html}
                 </div>
                 '''
             
-            categories_html += f'''
-            <div class="category">
-                <div class="category-title">{cat_icon} {cat_name}</div>
-                {items_html}
-            </div>
+            page_info = ""
+            if pagination_enabled and total_pages > 1:
+                page_info = f'<div class="page-info">第 {page + 1}/{total_pages} 页 | 回复"下一页"或"上一页"翻页</div>'
+            
+            return f'''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    * {{
+                        margin: 0;
+                        padding: 0;
+                        border: 0;
+                        box-sizing: border-box;
+                    }}
+                    html, body {{
+                        display: inline-block;
+                    }}
+                    body {{
+                        font-family: "Microsoft YaHei", sans-serif;
+                        zoom: {css_zoom};
+                        background-color: transparent;
+                        position: relative;
+                    }}
+                    #bg-layer {{
+                        position: fixed;
+                        top: 0; left: 0;
+                        width: 100%; height: 100%;
+                        {bg_style}
+                        z-index: 0;
+                    }}
+                    .menu-container {{
+                        display: inline-block;
+                        position: relative;
+                        padding: 40px 50px;
+                        z-index: 2;
+                    }}
+                    .overlay {{
+                        position: fixed;
+                        top: 0; left: 0;
+                        width: 100%; height: 100%;
+                        pointer-events: none;
+                        z-index: 1;
+                        background-color: transparent;
+                    }}
+                    .menu-title {{
+                        font-size: {title_size}px;
+                        font-weight: bold;
+                        color: {title_color};
+                        text-align: center;
+                        margin-bottom: 40px;
+                        padding-bottom: 30px;
+                        border-bottom: 2px solid {border_color};
+                    }}
+                    .category {{ margin-bottom: 50px; }}
+                    .category-title {{
+                        font-size: {category_size}px;
+                        font-weight: bold;
+                        color: {category_color};
+                        margin-bottom: 30px;
+                    }}
+                    .menu-item {{
+                        margin-bottom: 24px;
+                        padding-left: 40px;
+                    }}
+                    .item-row {{
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: baseline;
+                        margin-bottom: 8px;
+                    }}
+                    .item-name {{
+                        font-size: {item_name_size}px;
+                        color: {item_name_color};
+                        font-weight: 500;
+                    }}
+                    .item-command {{
+                        font-size: {command_size}px;
+                        color: {command_color};
+                        font-family: monospace;
+                    }}
+                    .item-desc {{
+                        font-size: {desc_size}px;
+                        color: {desc_color};
+                        padding-left: 30px;
+                    }}
+                    .menu-footer {{
+                        margin-top: 60px;
+                        padding-top: 30px;
+                        border-top: 2px solid {border_color};
+                        text-align: center;
+                        font-size: {footer_size}px;
+                        color: {footer_color};
+                    }}
+                    .page-info {{
+                        text-align: center;
+                        margin-top: 20px;
+                        font-size: {footer_size}px;
+                        color: {footer_color};
+                    }}
+                </style>
+            </head>
+            <body>
+                <div id="bg-layer"></div>
+                {overlay_html}
+                <div class="menu-container">
+                    <div class="menu-title">{title}</div>
+                    {categories_html}
+                    <div class="menu-footer">{footer}</div>
+                    {page_info}
+                </div>
+                <script>
+                    (function() {{
+                        var bgImage = '{bg_image}';
+                        if (bgImage) {{
+                            var img = new Image();
+                            img.onload = function() {{
+                                var width = this.width;
+                                var height = this.height;
+                                var body = document.body;
+                                var bgLayer = document.getElementById('bg-layer');
+                                var overlay = document.querySelector('.overlay');
+                                
+                                body.style.width = width + 'px';
+                                body.style.height = height + 'px';
+                                bgLayer.style.width = width + 'px';
+                                bgLayer.style.height = height + 'px';
+                                if (overlay) {{
+                                    overlay.style.width = width + 'px';
+                                    overlay.style.height = height + 'px';
+                                }}
+                            }};
+                            img.src = bgImage;
+                        }}
+                    }})();
+                </script>
+            </body>
+            </html>
             '''
-        
-        page_info = ""
-        if pagination_enabled and total_pages > 1:
-            page_info = f'<div class="page-info">第 {page + 1}/{total_pages} 页 | 回复"下一页"或"上一页"翻页</div>'
-        
-        return f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
-                    box-sizing: border-box;
-                }}
-                html {{
-                    width: max-content;
-                    height: max-content;
-                }}
-                body {{
-                    width: max-content;
-                    height: max-content;
-                    font-family: "Microsoft YaHei", sans-serif;
-                    zoom: {css_zoom};
-                    background-color: transparent;
-                    {bg_style}
-                    position: relative;
-                }}
-                .menu-container {{
-                    display: inline-block;
-                    position: relative;
-                    padding: 40px 50px;
-                }}
-                .overlay {{
-                    position: absolute;
-                    top: 0; left: 0;
-                    width: 100%; height: 100%;
-                    pointer-events: none;
-                    z-index: 1;
-                    background-color: transparent;
-                }}
-                .menu-title, .category, .menu-footer, .page-info {{
-                    position: relative;
-                    z-index: 2;
-                }}
-                .menu-title {{
-                    font-size: {title_size}px;
-                    font-weight: bold;
-                    color: {title_color};
-                    text-align: center;
-                    margin-bottom: 40px;
-                    padding-bottom: 30px;
-                    border-bottom: 2px solid {border_color};
-                }}
-                .category {{ margin-bottom: 50px; }}
-                .category-title {{
-                    font-size: {category_size}px;
-                    font-weight: bold;
-                    color: {category_color};
-                    margin-bottom: 30px;
-                }}
-                .menu-item {{
-                    margin-bottom: 24px;
-                    padding-left: 40px;
-                }}
-                .item-row {{
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: baseline;
-                    margin-bottom: 8px;
-                }}
-                .item-name {{
-                    font-size: {item_name_size}px;
-                    color: {item_name_color};
-                    font-weight: 500;
-                }}
-                .item-command {{
-                    font-size: {command_size}px;
-                    color: {command_color};
-                    font-family: monospace;
-                }}
-                .item-desc {{
-                    font-size: {desc_size}px;
-                    color: {desc_color};
-                    padding-left: 30px;
-                }}
-                .menu-footer {{
-                    margin-top: 60px;
-                    padding-top: 30px;
-                    border-top: 2px solid {border_color};
-                    text-align: center;
-                    font-size: {footer_size}px;
-                    color: {footer_color};
-                }}
-                .page-info {{
-                    text-align: center;
-                    margin-top: 20px;
-                    font-size: {footer_size}px;
-                    color: {footer_color};
-                }}
-            </style>
-        </head>
-        <body>
-            {overlay_html}
-            <div class="menu-container">
-                <div class="menu-title">{title}</div>
-                {categories_html}
-                <div class="menu-footer">{footer}</div>
-                {page_info}
-            </div>
-        </body>
-        </html>
-        '''
 
     def _parse_categories(self, categories: list, debug: bool) -> list:
         result = []
