@@ -43,9 +43,15 @@ class MenuHandler:
             menu_data = self.menu_manager.get_data()
             html = self._build_html(menu_data, config)
             
-            # 使用 AstrBot 原生 HTML 渲染
-            image_url = await self.plugin.html_render(html, {})
-            logger.info(f"菜单图片已生成")
+            # 高清渲染参数
+            render_options = {
+                "width": 600,
+                "device_scale_factor": 2.0,  # 2倍缩放，清晰度翻倍
+                "full_page": True,
+            }
+            
+            image_url = await self.plugin.html_render(html, render_options)
+            logger.info(f"菜单图片已生成（高清模式）")
             yield event.image_result(image_url)
             
         except Exception as e:
@@ -97,7 +103,7 @@ class MenuHandler:
             </div>
             '''
         
-        # 完整 HTML
+        # 完整 HTML（添加抗锯齿和优化渲染的样式）
         return f'''
         <!DOCTYPE html>
         <html>
@@ -114,6 +120,8 @@ class MenuHandler:
                     background-color: {bg_color};
                     padding: 30px 40px;
                     min-height: 100vh;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
                 }}
                 .menu-container {{
                     max-width: 600px;
