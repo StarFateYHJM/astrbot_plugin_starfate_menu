@@ -44,6 +44,13 @@
                         "min": 5,
                         "max": 30
                     },
+                    "columns": {
+                        "type": "int",
+                        "description": "功能项显示列数，1为单列，2为双列，3为三列",
+                        "default": 1,
+                        "min": 1,
+                        "max": 3
+                    },
                     "css_zoom": {
                         "type": "float",
                         "description": "CSS缩放倍数",
@@ -188,6 +195,7 @@
                 "is_default": true,
                 "pagination_enabled": true,
                 "items_per_page": 10,
+                "columns": 1,
                 "css_zoom": 2.0,
                 "container_align": "center",
                 "title_text": "功能菜单",
