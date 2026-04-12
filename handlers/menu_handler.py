@@ -104,6 +104,8 @@ class MenuHandler:
             categories = all_categories
             total_pages = 1
         
+        columns = menu.get("columns", 1)
+        
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = menu.get("title_color", "#E6B800")
         title_size = menu.get("title_size", 56)
@@ -141,26 +143,34 @@ class MenuHandler:
             if not items:
                 continue
             
-            items_html = ""
-            for item in items:
-                name = item.get("name", "")
-                command = item.get("command", "")
-                desc = item.get("description", "")
-                
-                items_html += f'''
-                <div class="menu-item">
-                    <div class="item-row">
-                        <span class="item-name">• {name}</span>
-                        <span class="item-command">{command}</span>
+            items_per_col = math.ceil(len(items) / columns)
+            
+            cols_html = ""
+            for col in range(columns):
+                col_items = items[col * items_per_col : (col + 1) * items_per_col]
+                col_html = '<div class="menu-column">'
+                for item in col_items:
+                    name = item.get("name", "")
+                    command = item.get("command", "")
+                    desc = item.get("description", "")
+                    col_html += f'''
+                    <div class="menu-item">
+                        <div class="item-row">
+                            <span class="item-name">• {name}</span>
+                            <span class="item-command">{command}</span>
+                        </div>
+                        <div class="item-desc">{desc}</div>
                     </div>
-                    <div class="item-desc">{desc}</div>
-                </div>
-                '''
+                    '''
+                col_html += '</div>'
+                cols_html += col_html
             
             categories_html += f'''
             <div class="category">
                 <div class="category-title">{cat_icon} {cat_name}</div>
-                {items_html}
+                <div class="category-columns" style="display: flex; gap: 50px;">
+                    {cols_html}
+                </div>
             </div>
             '''
         
@@ -213,16 +223,26 @@ class MenuHandler:
                     padding-bottom: 30px;
                     border-bottom: 2px solid {border_color};
                 }}
-                .category {{ margin-bottom: 50px; }}
+                .category {{
+                    margin-bottom: 50px;
+                }}
                 .category-title {{
                     font-size: {category_size}px;
                     font-weight: bold;
                     color: {category_color};
                     margin-bottom: 30px;
                 }}
+                .category-columns {{
+                    display: flex;
+                    gap: 50px;
+                }}
+                .menu-column {{
+                    flex: 1;
+                    min-width: 200px;
+                }}
                 .menu-item {{
                     margin-bottom: 24px;
-                    padding-left: 40px;
+                    padding-left: 20px;
                 }}
                 .item-row {{
                     display: flex;
@@ -243,7 +263,7 @@ class MenuHandler:
                 .item-desc {{
                     font-size: {desc_size}px;
                     color: {desc_color};
-                    padding-left: 30px;
+                    padding-left: 20px;
                 }}
                 .menu-footer {{
                     margin-top: 60px;
