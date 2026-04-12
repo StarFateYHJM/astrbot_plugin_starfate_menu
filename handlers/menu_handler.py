@@ -121,15 +121,9 @@ class MenuHandler:
                 body {{
                     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
                     zoom: {css_zoom};
-                    background-color: transparent;
-                    display: inline-block;
-                }}
-                .menu-container {{
-                    display: block;
-                    position: relative;
                     {bg_style}
-                    padding: {padding_body};
-                    color: {text_color};
+                    display: inline-block;
+                    position: relative;
                 }}
                 .overlay {{
                     position: absolute;
@@ -138,8 +132,11 @@ class MenuHandler:
                     pointer-events: none;
                     z-index: 1;
                 }}
-                .content {{
+                .menu-container {{
+                    display: block;
                     position: relative;
+                    padding: {padding_body};
+                    color: {text_color};
                     z-index: 2;
                 }}
                 .content h1 {{
@@ -236,8 +233,8 @@ class MenuHandler:
             </style>
         </head>
         <body>
+            {overlay_html}
             <div class="menu-container">
-                {overlay_html}
                 <div class="content" id="content"></div>
             </div>
             <script>
