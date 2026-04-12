@@ -11,17 +11,33 @@ class MenuHandler:
         self.menu_manager = menu_manager
     
     async def handle(self, event: AstrMessageEvent, page: int = None, menu_id: str = None):
+        # 尝试从消息对象获取原始文本
         raw_msg = event.message_str.strip()
+        
+        # 如果 message_str 没有斜杠，尝试从原始消息对象获取
+        if not raw_msg.startswith('/'):
+            try:
+                message_obj = event.message_obj
+                if hasattr(message_obj, 'raw_message'):
+                    raw_msg = message_obj.raw_message.strip()
+                elif hasattr(message_obj, 'message'):
+                    # 从消息链中提取文本
+                    for seg in message_obj.message:
+                        if hasattr(seg, 'type') and seg.type == 'text':
+                            raw_msg = seg.data.get('text', '').strip()
+                            break
+            except:
+                pass
+        
         msg = raw_msg.lower()
         config = self.plugin.config
         debug = config.get("debug_mode", False)
         user_id = str(event.get_sender_id())
         
         if debug:
-            logger.info(f"收到菜单请求: 用户={user_id}, 消息={raw_msg}")
+            logger.info(f"收到菜单请求: 用户={user_id}, 原始消息='{raw_msg}'")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
-        trigger_commands_lower = [cmd.lower() for cmd in trigger_commands]
         
         group_id = event.get_group_id()
         is_group = bool(group_id)
@@ -29,8 +45,9 @@ class MenuHandler:
         triggered = False
         requested_menu_id = menu_id
         
-        for cmd in trigger_commands_lower:
-            if msg == cmd or msg.startswith(cmd + " "):
+        for cmd in trigger_commands:
+            cmd_lower = cmd.lower()
+            if raw_msg.lower() == cmd_lower or raw_msg.lower().startswith(cmd_lower + " "):
                 triggered = True
                 if not requested_menu_id:
                     parts = raw_msg.split(maxsplit=1)
