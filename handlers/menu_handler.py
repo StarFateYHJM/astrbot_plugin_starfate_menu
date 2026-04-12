@@ -36,7 +36,7 @@ class MenuHandler:
         
         try:
             html = self._build(menu)
-            url = await self.plugin.html_render(html, {}, {"full_page": True})
+            url = await self.plugin.html_render(html, {"full_page": True})
             logger.info("图片已生成")
             yield event.image_result(url)
         except Exception as e:
@@ -66,7 +66,10 @@ class MenuHandler:
 
     def _build(self, m: dict) -> str:
         bg = m.get("background_image", "")
-        overlay = f'<div class="overlay" style="background:{m.get("overlay_color","#000")};opacity:{m.get("overlay_opacity",0.5)}"></div>' if bg and m.get("background_overlay", True) else ""
+        overlay = ""
+        if bg and m.get("background_overlay", True):
+            overlay = f'<div class="overlay" style="background:{m.get("overlay_color","#000")};opacity:{m.get("overlay_opacity",0.5)}"></div>'
+        
         sub = ""
         if s := m.get("subtext_content", ""):
             sub = f'<div class="subtext" style="color:{m.get("subtext_color","#888")};font-size:{m.get("subtext_size","14px")}">{s}</div>'
