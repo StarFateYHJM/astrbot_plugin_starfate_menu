@@ -12,7 +12,7 @@
     },
     "menu_categories": {
         "type": "template_list",
-        "description": "菜单分类管理，点击展开编辑分类和功能项",
+        "description": "菜单分类管理，点击展开编辑分类",
         "templates": {
             "default": {
                 "name": "新分类",
@@ -28,31 +28,8 @@
                         "default": "📌"
                     },
                     "function_items": {
-                        "type": "template_list",
-                        "description": "该分类下的功能项列表",
-                        "templates": {
-                            "default": {
-                                "name": "新功能",
-                                "items": {
-                                    "name": {
-                                        "type": "string",
-                                        "description": "功能名称",
-                                        "default": "新功能"
-                                    },
-                                    "command": {
-                                        "type": "string",
-                                        "description": "触发命令",
-                                        "default": "/newcmd"
-                                    },
-                                    "description": {
-                                        "type": "text",
-                                        "description": "功能描述",
-                                        "default": "这是一个自定义功能"
-                                    }
-                                }
-                            }
-                        },
-                        "default": []
+                        "type": "text",
+                        "description": "该分类下的功能项，JSON数组格式。示例：[{\"name\":\"功能名\",\"command\":\"/cmd\",\"description\":\"描述\"}]"
                     }
                 }
             }
@@ -61,24 +38,12 @@
             {
                 "category_name": "基础功能",
                 "category_icon": "📋",
-                "function_items": [
-                    {
-                        "name": "协议签订",
-                        "command": "/协议",
-                        "description": "查看并签署用户协议"
-                    }
-                ]
+                "function_items": "[{\"name\":\"协议签订\",\"command\":\"/协议\",\"description\":\"查看并签署用户协议\"}]"
             },
             {
                 "category_name": "娱乐功能",
                 "category_icon": "🎮",
-                "function_items": [
-                    {
-                        "name": "示例功能",
-                        "command": "/example",
-                        "description": "这是一个示例功能"
-                    }
-                ]
+                "function_items": "[{\"name\":\"示例功能\",\"command\":\"/example\",\"description\":\"这是一个示例功能\"}]"
             }
         ]
     },
