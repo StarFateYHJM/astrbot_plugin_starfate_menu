@@ -1,5 +1,4 @@
 import copy
-import json
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
@@ -193,14 +192,22 @@ class MenuHandler:
         """将 WebUI 配置格式转换为内部格式"""
         result = []
         for cat in categories:
-            function_items = cat.get("function_items", "[]")
-            if isinstance(function_items, str):
-                try:
-                    items = json.loads(function_items)
-                except:
-                    items = []
-            else:
-                items = function_items
+            function_items = cat.get("function_items", [])
+            items = []
+            for item_str in function_items:
+                parts = item_str.split("|")
+                if len(parts) >= 3:
+                    items.append({
+                        "name": parts[0].strip(),
+                        "command": parts[1].strip(),
+                        "description": parts[2].strip()
+                    })
+                elif len(parts) == 2:
+                    items.append({
+                        "name": parts[0].strip(),
+                        "command": parts[1].strip(),
+                        "description": ""
+                    })
             
             result.append({
                 "name": cat.get("category_name", ""),
