@@ -97,8 +97,38 @@ class StarFateMenuPlugin(Star):
         if not await self._check_admin(event):
             yield event.plain_result("权限不足")
             return
+        
+        # 刷新插件配置
+        await self._reload_config()
+        
         self.menu_manager.reload()
+        
+        if self.debug:
+            logger.info(f"配置已重载，menu_sets 数量: {len(self.config.get('menu_sets', []))}")
+        
         yield event.plain_result("菜单配置已重载")
+
+    async def _reload_config(self):
+        """重新加载插件配置"""
+        try:
+            # 方法1：从插件管理器获取
+            star_manager = self.context.get_star_manager()
+            if star_manager:
+                plugin = star_manager.get_star(self.name)
+                if plugin and plugin.config:
+                    self.config = plugin.config
+                    self.debug = self.config.get("debug_mode", False)
+                    return
+            
+            # 方法2：从配置文件直接读取
+            config_file = self.data_dir / "config.json"
+            if config_file.exists():
+                with open(config_file, "r", encoding="utf-8") as f:
+                    self.config = json.load(f)
+                    self.debug = self.config.get("debug_mode", False)
+                    return
+        except Exception as e:
+            logger.warning(f"刷新配置失败: {e}")
 
     @filter.command("sfmenu_export")
     async def cmd_export(self, event: AstrMessageEvent):
