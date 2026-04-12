@@ -78,9 +78,8 @@ class MenuHandler:
         try:
             html = self._build_html(config, selected_menu, debug, page, user_id)
             
-            global_styles = config.get("global_styles", {})
             render_options = {
-                "width": global_styles.get("viewport_width", 300),
+                "width": config.get("viewport_width", 300),
                 "full_page": True
             }
             
@@ -99,9 +98,7 @@ class MenuHandler:
             yield event.plain_result(f"菜单渲染失败: {e}")
 
     def _build_html(self, config: dict, menu: dict, debug: bool, page: int, user_id: str) -> str:
-        global_styles = config.get("global_styles", {})
-        
-        title = menu.get("title_text") or "StarFate 功能菜单"
+        title = menu.get("title_text") or "功能菜单"
         footer = menu.get("footer_text") or "发送对应命令即可使用功能"
         
         raw_categories = menu.get("categories", [])
@@ -123,21 +120,21 @@ class MenuHandler:
             logger.info(f"分页: 第 {page + 1}/{total_pages} 页, 功能项: {total_items}")
         
         bg_color = menu.get("background_color", "#1A1A2E")
-        title_color = global_styles.get("title_color", "#E6B800")
-        title_size = global_styles.get("title_size", 56)
-        category_color = global_styles.get("category_color", "#00D2FF")
-        category_size = global_styles.get("category_size", 40)
-        item_name_color = global_styles.get("item_name_color", "#FFFFFF")
-        item_name_size = global_styles.get("item_name_size", 32)
-        command_color = global_styles.get("command_color", "#888888")
-        command_size = global_styles.get("command_size", 28)
-        desc_color = global_styles.get("description_color", "#AAAAAA")
-        desc_size = global_styles.get("description_size", 26)
-        footer_color = global_styles.get("footer_color", "#666666")
-        footer_size = global_styles.get("footer_size", 28)
-        border_color = global_styles.get("border_color", "#333355")
-        padding_body = global_styles.get("padding_body", "60px 80px")
-        css_zoom = global_styles.get("css_zoom", 2.0)
+        title_color = config.get("title_color", "#E6B800")
+        title_size = config.get("title_size", 56)
+        category_color = config.get("category_color", "#00D2FF")
+        category_size = config.get("category_size", 40)
+        item_name_color = config.get("item_name_color", "#FFFFFF")
+        item_name_size = config.get("item_name_size", 32)
+        command_color = config.get("command_color", "#888888")
+        command_size = config.get("command_size", 28)
+        desc_color = config.get("description_color", "#AAAAAA")
+        desc_size = config.get("description_size", 26)
+        footer_color = config.get("footer_color", "#666666")
+        footer_size = config.get("footer_size", 28)
+        border_color = config.get("border_color", "#333355")
+        padding_body = config.get("padding_body", "60px 80px")
+        css_zoom = config.get("css_zoom", 2.0)
         
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
@@ -295,9 +292,10 @@ class MenuHandler:
         '''
 
     def _parse_categories(self, categories: list, debug: bool) -> list:
-        """解析 list 格式的分类字符串"""
         result = []
         for cat_str in categories:
+            if not cat_str or not cat_str.strip():
+                continue
             parts = cat_str.split("|")
             if len(parts) < 3:
                 if debug:
