@@ -9,7 +9,7 @@
 
 ## 效果预览
 
-![菜单效果图](https://img.cdn1.vip/i/69db9a459f3fa_1775999557.webp)
+![菜单效果图](https://github.com/TF-MYMSI/astrbot_plugin_starfate_menu/blob/main/%E7%A4%BA%E4%BE%8B_compressed.jpg)
 
 ---
 
