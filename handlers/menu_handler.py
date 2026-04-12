@@ -4,31 +4,20 @@ from astrbot.api import logger
 
 
 class MenuHandler:
-    """菜单消息处理器"""
     
     def __init__(self, plugin, menu_manager):
         self.plugin = plugin
         self.menu_manager = menu_manager
     
     async def handle(self, event: AstrMessageEvent):
-        """处理消息，判断是否触发菜单"""
         msg = event.message_str.strip()
-        
-        # ✅ 使用插件的配置
         config = self.plugin.config
         
-        # 调试日志
-        logger.info(f"DEBUG - config keys: {list(config.keys())}")
-        logger.info(f"DEBUG - title_text: '{config.get('title_text')}'")
-        
-        # 获取触发命令列表
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
         
-        # 判断消息类型
         group_id = event.get_group_id()
         is_group = bool(group_id)
         
-        # 检查是否命中触发命令（支持带/和不带/的版本）
         triggered = False
         for cmd in trigger_commands:
             if msg == cmd or msg.startswith(cmd + " ") or msg == cmd.lstrip('/'):
@@ -38,16 +27,13 @@ class MenuHandler:
         if not triggered:
             return
         
-        # 群聊需要检查@
         if is_group:
             group_require_at = config.get("group_require_at", True)
             if group_require_at and not self._is_at_me(event):
                 return
         
-        # 渲染并发送菜单
         try:
-            menu_data = self.menu_manager.get_data()
-            html = self._build_html(menu_data, config)
+            html = self._build_html(config)
             
             render_options = {
                 "width": config.get("viewport_width", 300),
@@ -60,20 +46,15 @@ class MenuHandler:
             
         except Exception as e:
             logger.error(f"菜单渲染失败: {e}")
-            yield event.plain_result(f"❌ StarFate 菜单渲染失败: {e}")
+            yield event.plain_result(f"菜单渲染失败: {e}")
     
-    def _build_html(self, menu_data: dict, config: dict) -> str:
-        """构建 HTML 模板（从配置读取所有样式）"""
-        # ✅ 优先使用 config，为空时才用 menu_data
-        title = config.get("title_text") or menu_data.get("title") or "🌟 StarFate 功能菜单"
-        footer = config.get("footer_text") or menu_data.get("footer") or "发送对应命令即可使用功能"
-        categories = menu_data.get("categories", [])
+    def _build_html(self, config: dict) -> str:
+        title = config.get("title_text") or "StarFate 功能菜单"
+        footer = config.get("footer_text") or "发送对应命令即可使用功能"
         
-        # 合并手动添加的功能项
-        custom_items = config.get("custom_items", [])
-        categories = self._merge_custom_items(categories, custom_items)
+        categories = config.get("menu_categories", [])
+        categories = self._normalize_categories(categories)
         
-        # 从配置读取所有样式
         bg_color = config.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
         title_size = config.get("title_size", 56)
@@ -91,7 +72,6 @@ class MenuHandler:
         padding_body = config.get("padding_body", "60px 80px")
         css_zoom = config.get("css_zoom", 2.0)
         
-        # 构建分类 HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
@@ -121,7 +101,6 @@ class MenuHandler:
             </div>
             '''
         
-        # 完整 HTML
         return f'''
         <!DOCTYPE html>
         <html>
@@ -209,31 +188,17 @@ class MenuHandler:
         </html>
         '''
     
-    def _merge_custom_items(self, categories: list, custom_items: list) -> list:
-        """将手动添加的功能项合并到对应分类"""
-        result = copy.deepcopy(categories)
-        
-        for item in custom_items:
-            cat_name = item.get("category", "其他功能")
-            icon = item.get("icon", "🔧")
-            
-            # 查找或创建分类
-            cat = next((c for c in result if c.get("name") == cat_name), None)
-            if not cat:
-                cat = {"name": cat_name, "icon": icon, "items": []}
-                result.append(cat)
-            
-            # 添加功能项
-            cat["items"].append({
-                "name": item.get("display_name", "新功能"),
-                "command": item.get("command", ""),
-                "description": item.get("description", "")
+    def _normalize_categories(self, categories: list) -> list:
+        result = []
+        for cat in categories:
+            result.append({
+                "name": cat.get("category_name", ""),
+                "icon": cat.get("category_icon", "📌"),
+                "items": cat.get("items", [])
             })
-        
         return result
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
-        """检查是否@了机器人"""
         message_obj = event.message_obj
         if message_obj and hasattr(message_obj, 'message'):
             for segment in message_obj.message:
