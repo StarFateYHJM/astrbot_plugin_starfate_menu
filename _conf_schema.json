@@ -59,6 +59,11 @@
                         "max": 4.0,
                         "step": 0.5
                     },
+                    "container_align": {
+                        "type": "string",
+                        "description": "对齐方式：left(左)、center(中)、right(右)",
+                        "default": "center"
+                    },
                     "title_text": {
                         "type": "string",
                         "description": "菜单标题",
@@ -191,6 +196,7 @@
                 "pagination_enabled": true,
                 "items_per_page": 10,
                 "css_zoom": 2.0,
+                "container_align": "center",
                 "title_text": "功能菜单",
                 "footer_text": "发送对应命令即可使用功能",
                 "background_color": "#1A1A2E",
