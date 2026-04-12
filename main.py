@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
@@ -24,6 +25,9 @@ class StarFateMenuPlugin(Star):
         self.data_dir = data_path / "plugin_data" / self.name
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
+        self.backgrounds_dir = self.data_dir / "backgrounds"
+        self.backgrounds_dir.mkdir(exist_ok=True)
+        
         self.menu_file = self.data_dir / "menu_content.json"
         self._init_default_menu()
         
@@ -32,7 +36,7 @@ class StarFateMenuPlugin(Star):
         
         if self.debug:
             logger.info(f"数据目录: {self.data_dir}")
-            logger.info(f"配置项数量: {len(self.config)}")
+            logger.info(f"背景图片目录: {self.backgrounds_dir}")
         
         logger.info(f"{self.display_name} 插件已加载")
 
@@ -57,6 +61,24 @@ class StarFateMenuPlugin(Star):
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
+        msg = event.message_str.strip().lower()
+        user_id = str(event.get_sender_id())
+        
+        # 翻页处理
+        if self.config.get("pagination_enabled", True):
+            page_keywords_next = ["下一页", "next", "下页", ">"]
+            page_keywords_prev = ["上一页", "prev", "上页", "<"]
+            
+            if msg in page_keywords_next:
+                await self._change_page(event, 1)
+                event.stop_event()
+                return
+            elif msg in page_keywords_prev:
+                await self._change_page(event, -1)
+                event.stop_event()
+                return
+        
+        # 菜单触发
         has_result = False
         async for result in self.handler.handle(event):
             if result:
@@ -65,6 +87,20 @@ class StarFateMenuPlugin(Star):
         
         if has_result:
             event.stop_event()
+
+    async def _change_page(self, event: AstrMessageEvent, delta: int):
+        user_id = str(event.get_sender_id())
+        menu_id = await self.get_kv_data(f"menu_current_{user_id}", "default")
+        current_page = await self.get_kv_data(f"menu_page_{user_id}_{menu_id}", 0)
+        new_page = max(0, current_page + delta)
+        await self.put_kv_data(f"menu_page_{user_id}_{menu_id}", new_page)
+        
+        if self.debug:
+            logger.info(f"用户 {user_id} 翻页: {current_page} -> {new_page}")
+        
+        async for result in self.handler.handle(event, page=new_page, menu_id=menu_id):
+            if result:
+                yield result
 
     @filter.command("sfmenu_reload")
     async def cmd_reload(self, event: AstrMessageEvent):
@@ -82,6 +118,22 @@ class StarFateMenuPlugin(Star):
         content = self.menu_manager.export()
         yield event.plain_result(f"```json\n{content}\n```")
 
+    @filter.command("sfmenu_list")
+    async def cmd_list(self, event: AstrMessageEvent):
+        menu_sets = self.config.get("menu_sets", [])
+        if not menu_sets:
+            yield event.plain_result("暂无菜单配置")
+            return
+        
+        lines = ["可用菜单："]
+        for i, menu in enumerate(menu_sets, 1):
+            name = menu.get("menu_name", "未命名")
+            mid = menu.get("menu_id", "unknown")
+            default = " [默认]" if menu.get("is_default", False) else ""
+            lines.append(f"  {i}. {name} (/menu {mid}){default}")
+        
+        yield event.plain_result("\n".join(lines))
+
     async def _check_admin(self, event: AstrMessageEvent) -> bool:
         global_config = self.context.get_config()
         admin_list = (
@@ -92,6 +144,14 @@ class StarFateMenuPlugin(Star):
         )
         user_id = str(event.get_sender_id())
         return user_id in admin_list
+
+    def get_background_path(self, filename: str) -> str:
+        if not filename:
+            return ""
+        bg_path = self.backgrounds_dir / filename
+        if bg_path.exists():
+            return str(bg_path.absolute())
+        return ""
 
     async def terminate(self):
         logger.info(f"{self.display_name} 插件已卸载")
