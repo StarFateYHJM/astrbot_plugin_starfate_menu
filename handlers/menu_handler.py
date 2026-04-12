@@ -43,12 +43,16 @@ class MenuHandler:
             menu_data = self.menu_manager.get_data()
             html = self._build_html(menu_data, config)
             
-            # 高清渲染参数
+            # ✅ 使用官方推荐的 scale 参数来解决清晰度问题
             render_options = {
-                "width": 800,                    # 提高宽度
-                "device_scale_factor": 3.0,      # 3倍缩放（文件会变大）
-                "full_page": True,
+                "width": 600,          # 控制视口宽度
+                "full_page": True,     # 截取完整页面
+                "scale": "device"      # 关键参数：让截图适应设备分辨率，解决模糊问题
             }
+    
+    image_url = await self.plugin.html_render(html, {}, options=render_options)
+    logger.info("菜单图片已生成（高清模式）")
+    yield event.image_result(image_url)
             
             image_url = await self.plugin.html_render(html, render_options)
             logger.info(f"菜单图片已生成（高清模式）")
