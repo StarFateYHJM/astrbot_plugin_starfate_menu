@@ -14,9 +14,8 @@ class StarFateMenuPlugin(Star):
         super().__init__(context)
         self.name = "astrbot_plugin_starfate_menu"
         self.display_name = "StarFate 功能菜单"
-        self.config = config or {}  # ✅ 保存插件配置
+        self.config = config or {}
         
-        # 获取插件数据目录
         from astrbot.core.utils.astrbot_path import get_astrbot_data_path
         data_path = get_astrbot_data_path()
         if isinstance(data_path, str):
@@ -24,23 +23,18 @@ class StarFateMenuPlugin(Star):
         self.data_dir = data_path / "plugin_data" / self.name
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
-        # 菜单文件路径
         self.menu_file = self.data_dir / "menu_content.json"
-        
-        # 初始化默认菜单
         self._init_default_menu()
         
-        # 初始化组件
         self.menu_manager = MenuManager(self.menu_file)
         self.handler = MenuHandler(self, self.menu_manager)
         
         logger.info(f"{self.display_name} 插件已加载，配置项数量: {len(self.config)}")
 
     def _init_default_menu(self):
-        """初始化默认菜单文件"""
         if not self.menu_file.exists():
             default_menu = {
-                "title": "🌟 StarFate 功能菜单",
+                "title": "StarFate 功能菜单",
                 "footer": "发送对应命令即可使用功能",
                 "categories": [
                     {
@@ -48,13 +42,6 @@ class StarFateMenuPlugin(Star):
                         "icon": "📋",
                         "items": [
                             {"name": "协议签订", "command": "/协议", "description": "查看并签署用户协议"}
-                        ]
-                    },
-                    {
-                        "name": "娱乐功能",
-                        "icon": "🎮",
-                        "items": [
-                            {"name": "示例功能", "command": "/example", "description": "这是一个示例功能"}
                         ]
                     }
                 ]
@@ -65,7 +52,6 @@ class StarFateMenuPlugin(Star):
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
-        """消息监听 - 处理菜单触发"""
         has_result = False
         async for result in self.handler.handle(event):
             if result:
@@ -77,31 +63,25 @@ class StarFateMenuPlugin(Star):
 
     @filter.command("sfmenu_reload")
     async def cmd_reload(self, event: AstrMessageEvent):
-        """重载菜单配置（仅管理员）"""
         if not await self._check_admin(event):
-            yield event.plain_result("❌ 权限不足")
+            yield event.plain_result("权限不足")
             return
         self.menu_manager.reload()
-        # 同时刷新插件配置
-        self.config = self.context.get_plugin_config(self.name) or self.config
-        yield event.plain_result("✅ StarFate 菜单配置已重载")
+        yield event.plain_result("StarFate 菜单配置已重载")
 
     @filter.command("sfmenu_export")
     async def cmd_export(self, event: AstrMessageEvent):
-        """导出菜单配置（仅管理员）"""
         if not await self._check_admin(event):
-            yield event.plain_result("❌ 权限不足")
+            yield event.plain_result("权限不足")
             return
         content = self.menu_manager.export()
         yield event.plain_result(f"```json\n{content}\n```")
 
     async def _check_admin(self, event: AstrMessageEvent) -> bool:
-        """检查管理员权限"""
         global_config = self.context.get_config()
         admin_list = global_config.get("admin_list", [])
         user_id = str(event.get_sender_id())
         return user_id in admin_list
 
     async def terminate(self):
-        """插件卸载时调用"""
         logger.info(f"{self.display_name} 插件已卸载")
