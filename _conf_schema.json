@@ -12,7 +12,7 @@
     },
     "debug_mode": {
         "type": "bool",
-        "description": "调试模式，开启后日志会输出详细的解析过程",
+        "description": "调试模式，开启后日志输出详细解析过程",
         "default": false
     },
     "pagination_enabled": {
@@ -29,7 +29,7 @@
     },
     "menu_sets": {
         "type": "template_list",
-        "description": "多菜单配置，可创建多套独立的菜单方案",
+        "description": "多菜单配置，可创建多套独立菜单",
         "templates": {
             "default": {
                 "name": "新菜单",
@@ -41,7 +41,7 @@
                     },
                     "menu_id": {
                         "type": "string",
-                        "description": "菜单ID",
+                        "description": "菜单ID（用于 /menu id 切换）",
                         "default": "default"
                     },
                     "is_default": {
@@ -88,32 +88,12 @@
                         "step": 0.1
                     },
                     "categories": {
-                        "type": "template_list",
-                        "description": "分类列表",
-                        "templates": {
-                            "default": {
-                                "name": "新分类",
-                                "items": {
-                                    "category_name": {
-                                        "type": "string",
-                                        "description": "分类名称",
-                                        "default": ""
-                                    },
-                                    "category_icon": {
-                                        "type": "string",
-                                        "description": "分类图标",
-                                        "default": "📌"
-                                    },
-                                    "function_items": {
-                                        "type": "list",
-                                        "description": "功能项",
-                                        "items": {"type": "string"},
-                                        "default": []
-                                    }
-                                }
-                            }
-                        },
-                        "default": []
+                        "type": "list",
+                        "description": "分类列表，格式：分类名 | 图标 | 功能1名称,命令,描述;功能2名称,命令,描述",
+                        "items": {"type": "string"},
+                        "default": [
+                            "基础功能 | 📋 | 协议签订,/协议,查看并签署用户协议"
+                        ]
                     }
                 }
             }
@@ -131,13 +111,7 @@
                 "overlay_color": "#000000",
                 "overlay_opacity": 0.5,
                 "categories": [
-                    {
-                        "category_name": "基础功能",
-                        "category_icon": "📋",
-                        "function_items": [
-                            "协议签订 | /协议 | 查看并签署用户协议"
-                        ]
-                    }
+                    "基础功能 | 📋 | 协议签订,/协议,查看并签署用户协议"
                 ]
             }
         ]
