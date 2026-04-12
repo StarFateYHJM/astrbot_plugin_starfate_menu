@@ -27,7 +27,7 @@
                         "description": "分类图标，建议使用emoji",
                         "default": "📌"
                     },
-                    "items": {
+                    "function_items": {
                         "type": "template_list",
                         "description": "该分类下的功能项列表",
                         "templates": {
@@ -61,7 +61,7 @@
             {
                 "category_name": "基础功能",
                 "category_icon": "📋",
-                "items": [
+                "function_items": [
                     {
                         "name": "协议签订",
                         "command": "/协议",
@@ -72,7 +72,7 @@
             {
                 "category_name": "娱乐功能",
                 "category_icon": "🎮",
-                "items": [
+                "function_items": [
                     {
                         "name": "示例功能",
                         "command": "/example",
@@ -84,7 +84,7 @@
     },
     "viewport_width": {
         "type": "int",
-        "description": "图片渲染宽度，单位像素",
+        "description": "图片渲染宽度（像素）",
         "default": 300,
         "min": 200,
         "max": 800
@@ -114,7 +114,7 @@
     },
     "title_size": {
         "type": "int",
-        "description": "标题字号，单位像素",
+        "description": "标题字号（像素）",
         "default": 56,
         "min": 20,
         "max": 100
@@ -126,7 +126,7 @@
     },
     "category_size": {
         "type": "int",
-        "description": "分类标题字号，单位像素",
+        "description": "分类标题字号（像素）",
         "default": 40,
         "min": 16,
         "max": 80
@@ -138,7 +138,7 @@
     },
     "item_name_size": {
         "type": "int",
-        "description": "功能名称字号，单位像素",
+        "description": "功能名称字号（像素）",
         "default": 32,
         "min": 14,
         "max": 60
@@ -150,7 +150,7 @@
     },
     "command_size": {
         "type": "int",
-        "description": "命令字号，单位像素",
+        "description": "命令字号（像素）",
         "default": 28,
         "min": 12,
         "max": 50
@@ -162,7 +162,7 @@
     },
     "description_size": {
         "type": "int",
-        "description": "功能描述字号，单位像素",
+        "description": "功能描述字号（像素）",
         "default": 26,
         "min": 12,
         "max": 50
@@ -179,7 +179,7 @@
     },
     "footer_size": {
         "type": "int",
-        "description": "底部文字字号，单位像素",
+        "description": "底部文字字号（像素）",
         "default": 28,
         "min": 12,
         "max": 50
@@ -191,7 +191,7 @@
     },
     "padding_body": {
         "type": "string",
-        "description": "页面内边距，CSS格式",
+        "description": "页面内边距，CSS格式如 60px 80px",
         "default": "60px 80px"
     }
 }
