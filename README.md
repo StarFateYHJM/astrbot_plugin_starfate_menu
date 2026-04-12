@@ -7,6 +7,12 @@
 
 ---
 
+## 效果预览
+
+![菜单效果图](https://img.cdn1.vip/i/69db993dd330c_1775999293.webp)
+
+---
+
 ## 特性
 
 - Markdown 自由排版 - 使用 Markdown 语法编写菜单内容
@@ -77,7 +83,6 @@ git clone https://github.com/YHJM/astrbot_plugin_starfate_menu.git
 | padding_body | 40px 50px | 内边距 |
 
 ---
-
 
 ## 作者
 
