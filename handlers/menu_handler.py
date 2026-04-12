@@ -47,6 +47,7 @@ class MenuHandler:
                 "width": 600,
                 "full_page": True,
                 "scale": "device"
+                "device_scale_factor": 2.0
             }
             
             image_url = await self.plugin.html_render(html, {}, options=render_options)
