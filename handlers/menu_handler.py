@@ -1,3 +1,5 @@
+"""菜单处理器"""
+
 import re
 import json
 from astrbot.api.event import AstrMessageEvent
@@ -6,279 +8,109 @@ from astrbot.api import logger
 
 class MenuHandler:
     
-    def __init__(self, plugin, menu_manager):
+    def __init__(self, plugin):
         self.plugin = plugin
-        self.menu_manager = menu_manager
-    
+
+    def _log(self, msg: str):
+        if self.plugin.debug:
+            logger.info(f"[DEBUG] {msg}")
+
     async def handle(self, event: AstrMessageEvent, page: int = None, menu_id: str = None):
-        raw_msg = event.message_str.strip()
-        config = self.plugin.config
-        debug = config.get("debug_mode", False)
-        user_id = str(event.get_sender_id())
+        raw = event.message_str.strip()
+        cfg = self.plugin.config
         
-        if debug:
-            logger.info("=" * 50)
-            logger.info(f"[DEBUG] 收到消息: user={user_id}, msg='{raw_msg}'")
+        self._log(f"请求: {raw}")
         
-        trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
-        
-        triggered = False
-        requested_menu_id = menu_id
-        
-        for cmd in trigger_commands:
-            cmd_clean = cmd.lstrip('/')
-            pattern = rf'^(/{cmd_clean}|{cmd_clean})(\s|$)'
-            match = re.match(pattern, raw_msg, re.IGNORECASE)
-            if match:
-                triggered = True
-                if not requested_menu_id:
-                    remaining = raw_msg[match.end():].strip()
-                    if remaining:
-                        requested_menu_id = remaining.split()[0]
-                break
-        
+        triggered, req_id = self._match(raw, cfg.get("trigger_commands", ["/menu"]))
         if not triggered and page is None:
             return
         
-        menu_sets = config.get("menu_sets", [])
-        if not menu_sets:
-            yield event.plain_result("暂无菜单配置")
+        if not (menus := cfg.get("menu_sets", [])):
+            yield event.plain_result("暂无菜单")
             return
         
-        selected_menu = None
-        for menu in menu_sets:
-            if requested_menu_id and menu.get("menu_id") == requested_menu_id:
-                selected_menu = menu
-                break
-        
-        if not selected_menu:
-            for menu in menu_sets:
-                if menu.get("is_default", False):
-                    selected_menu = menu
-                    break
-        
-        if not selected_menu:
-            selected_menu = menu_sets[0]
-        
-        if requested_menu_id and requested_menu_id != selected_menu.get("menu_id"):
-            yield event.plain_result(f"未找到菜单 '{requested_menu_id}'")
+        menu = self._select(menus, req_id or menu_id)
+        if not menu:
+            yield event.plain_result(f"未找到菜单 '{req_id}'")
             return
         
         try:
-            html = self._build_html(config, selected_menu, debug)
-            
-            render_options = {
-                "full_page": True
-            }
-            
-            image_url = await self.plugin.html_render(html, {}, options=render_options)
-            logger.info("菜单图片已生成")
-            yield event.image_result(image_url)
-            
+            html = self._build(menu)
+            url = await self.plugin.html_render(html, {}, {"full_page": True})
+            logger.info("图片已生成")
+            yield event.image_result(url)
         except Exception as e:
-            logger.error(f"菜单渲染失败: {e}")
-            if debug:
+            logger.error(f"渲染失败: {e}")
+            if self.plugin.debug:
                 import traceback
                 logger.error(traceback.format_exc())
-            yield event.plain_result(f"菜单渲染失败: {e}")
+            yield event.plain_result(f"渲染失败: {e}")
 
-    def _build_html(self, config: dict, menu: dict, debug: bool) -> str:
-        content = menu.get("content", "")
-        content_escaped = json.dumps(content)
+    def _match(self, raw: str, triggers: list) -> tuple:
+        for t in triggers:
+            c = t.lstrip('/')
+            if re.match(rf'^(/{c}|{c})(\s|$)', raw, re.I):
+                parts = raw.split(maxsplit=1)
+                return True, parts[1].strip() if len(parts) > 1 else None
+        return False, None
+
+    def _select(self, menus: list, req_id: str = None) -> dict:
+        if req_id:
+            for m in menus:
+                if m.get("menu_id") == req_id:
+                    return m
+        for m in menus:
+            if m.get("is_default"):
+                return m
+        return menus[0] if menus else None
+
+    def _build(self, m: dict) -> str:
+        bg = m.get("background_image", "")
+        overlay = f'<div class="overlay" style="background:{m.get("overlay_color","#000")};opacity:{m.get("overlay_opacity",0.5)}"></div>' if bg and m.get("background_overlay", True) else ""
+        sub = ""
+        if s := m.get("subtext_content", ""):
+            sub = f'<div class="subtext" style="color:{m.get("subtext_color","#888")};font-size:{m.get("subtext_size","14px")}">{s}</div>'
         
-        bg_color = menu.get("background_color", "#1A1A2E")
-        text_color = menu.get("text_color", "#FFFFFF")
-        link_color = menu.get("link_color", "#00D2FF")
-        code_bg_color = menu.get("code_bg_color", "#2D2D2D")
-        code_text_color = menu.get("code_text_color", "#E6E6E6")
-        border_color = menu.get("border_color", "#333355")
-        css_zoom = menu.get("css_zoom", 2.0)
-        padding_body = menu.get("padding_body", "40px 50px")
-        
-        base_font_size = menu.get("base_font_size", "16px")
-        h1_font_size = menu.get("h1_font_size", "2.5em")
-        h2_font_size = menu.get("h2_font_size", "2em")
-        h3_font_size = menu.get("h3_font_size", "1.5em")
-        
-        bg_image = menu.get("background_image", "")
-        overlay_html = ""
-        if bg_image and menu.get("background_overlay", True):
-            overlay_color = menu.get("overlay_color", "#000000")
-            overlay_opacity = menu.get("overlay_opacity", 0.5)
-            overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
-        
-        return f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-            <style>
-                * {{
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }}
-                body {{
-                    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
-                    zoom: {css_zoom};
-                    background-color: {bg_color};
-                    position: relative;
-                    font-size: {base_font_size};
-                }}
-                .bg-layer {{
-                    position: absolute;
-                    top: 0; left: 0;
-                    z-index: 0;
-                }}
-                .bg-layer img {{
-                    display: block;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }}
-                .overlay {{
-                    position: absolute;
-                    top: 0; left: 0;
-                    width: 100%; height: 100%;
-                    pointer-events: none;
-                    z-index: 1;
-                }}
-                .menu-container {{
-                    position: relative;
-                    padding: {padding_body};
-                    color: {text_color};
-                    z-index: 2;
-                }}
-                .content h1 {{
-                    font-size: {h1_font_size};
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
-                    border-bottom: 2px solid {border_color};
-                }}
-                .content h2 {{
-                    font-size: {h2_font_size};
-                    margin-top: 30px;
-                    margin-bottom: 15px;
-                }}
-                .content h3 {{
-                    font-size: {h3_font_size};
-                    margin-top: 25px;
-                    margin-bottom: 10px;
-                }}
-                .content p {{
-                    margin-bottom: 15px;
-                    line-height: 1.6;
-                }}
-                .content ul, .content ol {{
-                    margin-left: 25px;
-                    margin-bottom: 15px;
-                }}
-                .content li {{
-                    margin-bottom: 8px;
-                    line-height: 1.6;
-                }}
-                .content a {{
-                    color: {link_color};
-                    text-decoration: none;
-                }}
-                .content a:hover {{
-                    text-decoration: underline;
-                }}
-                .content code {{
-                    background-color: {code_bg_color};
-                    color: {code_text_color};
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    font-family: "Consolas", "Monaco", monospace;
-                    font-size: 0.9em;
-                }}
-                .content pre {{
-                    background-color: {code_bg_color};
-                    padding: 15px;
-                    border-radius: 8px;
-                    overflow-x: auto;
-                    margin-bottom: 15px;
-                }}
-                .content pre code {{
-                    background: none;
-                    padding: 0;
-                    color: {code_text_color};
-                }}
-                .content table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 20px;
-                }}
-                .content th, .content td {{
-                    border: 1px solid {border_color};
-                    padding: 10px 15px;
-                    text-align: left;
-                }}
-                .content th {{
-                    background-color: rgba(255,255,255,0.1);
-                    font-weight: bold;
-                }}
-                .content hr {{
-                    border: none;
-                    border-top: 2px solid {border_color};
-                    margin: 30px 0;
-                }}
-                .content blockquote {{
-                    border-left: 4px solid {border_color};
-                    padding-left: 20px;
-                    margin-left: 0;
-                    margin-bottom: 15px;
-                    opacity: 0.8;
-                }}
-                .content img {{
-                    max-width: 100%;
-                    height: auto;
-                }}
-                .content strong {{
-                    font-weight: bold;
-                }}
-                .content em {{
-                    font-style: italic;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="bg-layer" id="bgLayer"></div>
-            {overlay_html}
-            <div class="menu-container">
-                <div class="content" id="content"></div>
-            </div>
-            <script>
-                (function() {{
-                    var markdown = {content_escaped};
-                    document.getElementById('content').innerHTML = marked.parse(markdown);
-                    
-                    var bgImage = '{bg_image}';
-                    var maxSize = 2000;
-                    
-                    if (bgImage) {{
-                        var img = new Image();
-                        img.onload = function() {{
-                            var width = this.width;
-                            var height = this.height;
-                            
-                            if (width > maxSize || height > maxSize) {{
-                                var scale = Math.min(maxSize / width, maxSize / height);
-                                width = Math.round(width * scale);
-                                height = Math.round(height * scale);
-                            }}
-                            
-                            document.body.style.width = width + 'px';
-                            document.body.style.height = height + 'px';
-                            
-                            var bgLayer = document.getElementById('bgLayer');
-                            bgLayer.innerHTML = '<img src="' + bgImage + '" style="width:' + width + 'px;height:' + height + 'px;">';
-                        }};
-                        img.src = bgImage;
-                    }}
-                }})();
-            </script>
-        </body>
-        </html>
-        '''
+        return f'''<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{font-family:"Microsoft YaHei",sans-serif;zoom:{m.get("css_zoom",2)};background:{m.get("background_color","#1A1A2E")};position:relative;font-size:{m.get("base_font_size","16px")}}}
+.bg-layer{{position:absolute;top:0;left:0;z-index:0}}
+.bg-layer img{{display:block;width:100%;height:100%;object-fit:cover}}
+.overlay{{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}}
+.menu-container{{position:relative;padding:{m.get("padding_body","40px 50px")};color:{m.get("text_color","#FFF")};z-index:2}}
+.content h1{{font-size:{m.get("h1_font_size","2.5em")};border-bottom:2px solid {m.get("border_color","#333")};margin-bottom:20px;padding-bottom:15px}}
+.content h2{{font-size:{m.get("h2_font_size","2em")};margin:30px 0 15px}}
+.content h3{{font-size:{m.get("h3_font_size","1.5em")};margin:25px 0 10px}}
+.content p{{margin-bottom:15px;line-height:1.6}}
+.content ul,.content ol{{margin-left:25px;margin-bottom:15px}}
+.content li{{margin-bottom:8px}}
+.content a{{color:{m.get("link_color","#0DF")};text-decoration:none}}
+.content code{{background:{m.get("code_bg_color","#2D2D2D")};color:{m.get("code_text_color","#E6E6E6")};padding:2px 6px;border-radius:4px}}
+.content pre{{background:{m.get("code_bg_color","#2D2D2D")};padding:15px;border-radius:8px;overflow-x:auto}}
+.content pre code{{background:none;padding:0}}
+.content table{{width:100%;border-collapse:collapse}}
+.content th,.content td{{border:1px solid {m.get("border_color","#333")};padding:10px 15px}}
+.content hr{{border:none;border-top:2px solid {m.get("border_color","#333")};margin:30px 0}}
+.subtext{{text-align:right;margin-top:20px;font-style:italic}}
+</style></head>
+<body><div class="bg-layer" id="bgLayer"></div>{overlay}
+<div class="menu-container"><div class="content" id="content"></div>{sub}</div>
+<script>
+(function(){{
+    document.getElementById('content').innerHTML = marked.parse({json.dumps(m.get("content",""))});
+    var bg = '{bg}';
+    if(bg){{
+        var i = new Image();
+        i.onload = function(){{
+            var w = this.width, h = this.height, max = 2000;
+            if(w > max || h > max){{ var s = Math.min(max/w, max/h); w = Math.round(w*s); h = Math.round(h*s); }}
+            document.body.style.width = w + 'px';
+            document.body.style.height = h + 'px';
+            document.getElementById('bgLayer').innerHTML = '<img src="' + bg + '" style="width:' + w + 'px;height:' + h + 'px;">';
+        }};
+        i.src = bg;
+    }}
+}})();
+</script></body></html>'''
