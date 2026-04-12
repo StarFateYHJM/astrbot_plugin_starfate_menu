@@ -36,12 +36,12 @@
                 "items": {
                     "menu_name": {
                         "type": "string",
-                        "description": "菜单名称（用于识别和切换）",
+                        "description": "菜单名称",
                         "default": "默认菜单"
                     },
                     "menu_id": {
                         "type": "string",
-                        "description": "菜单ID（用于命令切换，如 /menu vip）",
+                        "description": "菜单ID",
                         "default": "default"
                     },
                     "is_default": {
@@ -106,7 +106,7 @@
                                     },
                                     "function_items": {
                                         "type": "list",
-                                        "description": "功能项，格式：名称 | 命令 | 描述",
+                                        "description": "功能项",
                                         "items": {"type": "string"},
                                         "default": []
                                     }
