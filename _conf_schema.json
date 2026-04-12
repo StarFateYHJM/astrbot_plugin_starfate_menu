@@ -12,143 +12,54 @@
     },
     "menu_sets": {
         "type": "template_list",
-        "description": "多菜单配置，每个菜单完全独立",
+        "description": "多菜单配置",
         "templates": {
             "default": {
                 "name": "新菜单",
                 "items": {
-                    "menu_name": {
-                        "type": "string",
-                        "description": "菜单名称",
-                        "default": "默认菜单"
-                    },
-                    "menu_id": {
-                        "type": "string",
-                        "description": "菜单ID（/menu id）",
-                        "default": "default"
-                    },
-                    "is_default": {
-                        "type": "bool",
-                        "description": "是否为默认菜单",
-                        "default": false
-                    },
-                    "css_zoom": {
-                        "type": "float",
-                        "description": "CSS缩放倍数",
-                        "default": 2.0,
-                        "min": 1.0,
-                        "max": 4.0,
-                        "step": 0.5
-                    },
-                    "background_color": {
-                        "type": "string",
-                        "description": "背景颜色",
-                        "default": "#1A1A2E"
-                    },
-                    "background_image": {
-                        "type": "string",
-                        "description": "背景图片URL",
-                        "default": ""
-                    },
-                    "background_overlay": {
-                        "type": "bool",
-                        "description": "是否叠加遮罩",
-                        "default": true
-                    },
-                    "overlay_color": {
-                        "type": "string",
-                        "description": "遮罩颜色",
-                        "default": "#000000"
-                    },
-                    "overlay_opacity": {
-                        "type": "float",
-                        "description": "遮罩不透明度",
-                        "default": 0.5,
-                        "min": 0.0,
-                        "max": 1.0,
-                        "step": 0.1
-                    },
-                    "text_color": {
-                        "type": "string",
-                        "description": "正文文字颜色",
-                        "default": "#FFFFFF"
-                    },
-                    "link_color": {
-                        "type": "string",
-                        "description": "链接颜色",
-                        "default": "#00D2FF"
-                    },
-                    "code_bg_color": {
-                        "type": "string",
-                        "description": "代码块背景颜色",
-                        "default": "#2D2D2D"
-                    },
-                    "code_text_color": {
-                        "type": "string",
-                        "description": "代码块文字颜色",
-                        "default": "#E6E6E6"
-                    },
-                    "border_color": {
-                        "type": "string",
-                        "description": "分割线/表格边框颜色",
-                        "default": "#333355"
-                    },
-                    "padding_body": {
-                        "type": "string",
-                        "description": "页面内边距",
-                        "default": "40px 50px"
-                    },
-                    "base_font_size": {
-                        "type": "string",
-                        "description": "基础字号，如 16px、1em",
-                        "default": "16px"
-                    },
-                    "h1_font_size": {
-                        "type": "string",
-                        "description": "一级标题字号",
-                        "default": "2.5em"
-                    },
-                    "h2_font_size": {
-                        "type": "string",
-                        "description": "二级标题字号",
-                        "default": "2em"
-                    },
-                    "h3_font_size": {
-                        "type": "string",
-                        "description": "三级标题字号",
-                        "default": "1.5em"
-                    },
-                    "content": {
-                        "type": "text",
-                        "description": "菜单内容，支持 Markdown 语法",
-                        "default": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n- **帮助** `/help` - 获取使用帮助\n\n## 娱乐功能\n\n| 功能 | 命令 | 描述 |\n|------|------|------|\n| 抽签 | `/draw` | 随机抽取运势签 |\n| 猜数字 | `/guess` | 猜数字小游戏 |\n| 笑话 | `/joke` | 随机讲一个笑话 |\n\n---\n\n*发送对应命令即可使用功能*"
-                    }
+                    "menu_name": {"type": "string", "description": "菜单名称", "default": "默认菜单"},
+                    "menu_id": {"type": "string", "description": "菜单ID", "default": "default"},
+                    "is_default": {"type": "bool", "description": "是否为默认菜单", "default": false},
+                    
+                    "css_zoom": {"type": "float", "description": "CSS缩放倍数", "default": 2.0, "min": 1.0, "max": 4.0, "step": 0.5},
+                    "padding_body": {"type": "string", "description": "页面内边距", "default": "40px 50px"},
+                    
+                    "background_color": {"type": "string", "description": "背景颜色", "default": "#1A1A2E"},
+                    "background_image": {"type": "string", "description": "背景图片URL", "default": ""},
+                    "background_overlay": {"type": "bool", "description": "是否叠加遮罩", "default": true},
+                    "overlay_color": {"type": "string", "description": "遮罩颜色", "default": "#000000"},
+                    "overlay_opacity": {"type": "float", "description": "遮罩不透明度", "default": 0.5, "min": 0.0, "max": 1.0, "step": 0.1},
+                    
+                    "text_color": {"type": "string", "description": "正文颜色", "default": "#FFFFFF"},
+                    "link_color": {"type": "string", "description": "链接颜色", "default": "#00D2FF"},
+                    "border_color": {"type": "string", "description": "边框/分割线颜色", "default": "#333355"},
+                    
+                    "base_font_size": {"type": "string", "description": "基础字号", "default": "16px"},
+                    "h1_font_size": {"type": "string", "description": "H1字号", "default": "2.5em"},
+                    "h2_font_size": {"type": "string", "description": "H2字号", "default": "2em"},
+                    "h3_font_size": {"type": "string", "description": "H3字号", "default": "1.5em"},
+                    
+                    "code_bg_color": {"type": "string", "description": "代码块背景", "default": "#2D2D2D"},
+                    "code_text_color": {"type": "string", "description": "代码块文字", "default": "#E6E6E6"},
+                    
+                    "subtext_content": {"type": "string", "description": "分割线下方小字内容", "default": ""},
+                    "subtext_color": {"type": "string", "description": "小字颜色", "default": "#888888"},
+                    "subtext_size": {"type": "string", "description": "小字字号", "default": "14px"},
+                    
+                    "content": {"type": "text", "description": "Markdown内容", "default": "# 功能菜单\n\n- **协议签订** `/协议` - 查看并签署\n- **签到** `/sign` - 每日签到"}
                 }
             }
         },
-        "default": [
-            {
-                "menu_name": "默认菜单",
-                "menu_id": "default",
-                "is_default": true,
-                "css_zoom": 2.0,
-                "background_color": "#1A1A2E",
-                "background_image": "",
-                "background_overlay": true,
-                "overlay_color": "#000000",
-                "overlay_opacity": 0.5,
-                "text_color": "#FFFFFF",
-                "link_color": "#00D2FF",
-                "code_bg_color": "#2D2D2D",
-                "code_text_color": "#E6E6E6",
-                "border_color": "#333355",
-                "padding_body": "40px 50px",
-                "base_font_size": "16px",
-                "h1_font_size": "2.5em",
-                "h2_font_size": "2em",
-                "h3_font_size": "1.5em",
-                "content": "# 功能菜单\n\n## 基础功能\n\n- **协议签订** `/协议` - 查看并签署用户协议\n- **签到** `/sign` - 每日签到领积分\n- **帮助** `/help` - 获取使用帮助\n\n## 娱乐功能\n\n| 功能 | 命令 | 描述 |\n|------|------|------|\n| 抽签 | `/draw` | 随机抽取运势签 |\n| 猜数字 | `/guess` | 猜数字小游戏 |\n| 笑话 | `/joke` | 随机讲一个笑话 |\n\n---\n\n*发送对应命令即可使用功能*"
-            }
-        ]
+        "default": [{
+            "menu_name": "默认菜单", "menu_id": "default", "is_default": true,
+            "css_zoom": 2.0, "padding_body": "40px 50px",
+            "background_color": "#1A1A2E", "background_image": "", "background_overlay": true,
+            "overlay_color": "#000000", "overlay_opacity": 0.5,
+            "text_color": "#FFFFFF", "link_color": "#00D2FF", "border_color": "#333355",
+            "base_font_size": "16px", "h1_font_size": "2.5em", "h2_font_size": "2em", "h3_font_size": "1.5em",
+            "code_bg_color": "#2D2D2D", "code_text_color": "#E6E6E6",
+            "subtext_content": "", "subtext_color": "#888888", "subtext_size": "14px",
+            "content": "# 功能菜单\n\n- **协议签订** `/协议` - 查看并签署\n- **签到** `/sign` - 每日签到"
+        }]
     }
 }
