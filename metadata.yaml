@@ -1,7 +1,7 @@
 name: astrbot_plugin_starfate_menu
 display_name: StarFate 功能菜单
 version: 1.0.0
-description: StarFate 可配置的图片化功能菜单插件
+description: 支持 Markdown 自由排版、多菜单、背景图、遮罩的图片化菜单插件
 author: YHJM
 license: MIT
 astrbot_version: ">=4.0.0"
