@@ -28,8 +28,10 @@
                         "default": "📌"
                     },
                     "function_items": {
-                        "type": "text",
-                        "description": "该分类下的功能项，JSON数组格式。示例：[{\"name\":\"功能名\",\"command\":\"/cmd\",\"description\":\"描述\"}]"
+                        "type": "list",
+                        "description": "该分类下的功能项，每项格式：功能名称 | 命令 | 描述",
+                        "items": {"type": "string"},
+                        "default": []
                     }
                 }
             }
@@ -38,12 +40,16 @@
             {
                 "category_name": "基础功能",
                 "category_icon": "📋",
-                "function_items": "[{\"name\":\"协议签订\",\"command\":\"/协议\",\"description\":\"查看并签署用户协议\"}]"
+                "function_items": [
+                    "协议签订 | /协议 | 查看并签署用户协议"
+                ]
             },
             {
                 "category_name": "娱乐功能",
                 "category_icon": "🎮",
-                "function_items": "[{\"name\":\"示例功能\",\"command\":\"/example\",\"description\":\"这是一个示例功能\"}]"
+                "function_items": [
+                    "示例功能 | /example | 这是一个示例功能"
+                ]
             }
         ]
     },
