@@ -74,7 +74,6 @@ class MenuHandler:
             html = self._build_html(config, selected_menu, debug, page)
             
             render_options = {
-                "width": config.get("viewport_width", 800),
                 "full_page": True
             }
             
@@ -120,6 +119,14 @@ class MenuHandler:
         footer_size = menu.get("footer_size", 28)
         border_color = menu.get("border_color", "#333355")
         css_zoom = menu.get("css_zoom", 2.0)
+        container_align = menu.get("container_align", "center")
+        
+        align_map = {
+            "left": "flex-start",
+            "center": "center",
+            "right": "flex-end"
+        }
+        align_value = align_map.get(container_align, "center")
         
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
@@ -175,9 +182,17 @@ class MenuHandler:
             <meta charset="UTF-8">
             <style>
                 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                html, body {{
+                    width: 100%;
+                    min-height: 100vh;
+                }}
                 body {{
                     font-family: "Microsoft YaHei", sans-serif;
                     zoom: {css_zoom};
+                    background-color: transparent;
+                    display: flex;
+                    align-items: center;
+                    justify-content: {align_value};
                 }}
                 .menu-container {{
                     display: inline-block;
