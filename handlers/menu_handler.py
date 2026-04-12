@@ -15,8 +15,7 @@ class MenuHandler:
         debug = config.get("debug_mode", False)
         
         if debug:
-            logger.info("========== 收到菜单请求 ==========")
-            logger.info(f"用户: {event.get_sender_id()} | 群聊: {bool(event.get_group_id())} | 消息: {msg}")
+            logger.info(f"收到菜单请求: 用户={event.get_sender_id()}, 消息={msg}")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
         
@@ -27,8 +26,6 @@ class MenuHandler:
         for cmd in trigger_commands:
             if msg == cmd or msg.startswith(cmd + " ") or msg == cmd.lstrip('/'):
                 triggered = True
-                if debug:
-                    logger.info(f"触发命令: {cmd}")
                 break
         
         if not triggered:
@@ -37,8 +34,6 @@ class MenuHandler:
         if is_group:
             group_require_at = config.get("group_require_at", True)
             if group_require_at and not self._is_at_me(event):
-                if debug:
-                    logger.info("群聊未艾特机器人，忽略请求")
                 return
         
         try:
@@ -49,41 +44,20 @@ class MenuHandler:
                 "full_page": True
             }
             
-            if debug:
-                logger.info(f"渲染参数: width={render_options['width']}, full_page=True")
-                logger.info(f"HTML 长度: {len(html)} 字符")
-            
             image_url = await self.plugin.html_render(html, {}, options=render_options)
             logger.info("菜单图片已生成")
             yield event.image_result(image_url)
             
         except Exception as e:
             logger.error(f"菜单渲染失败: {e}")
-            if debug:
-                import traceback
-                logger.error(traceback.format_exc())
             yield event.plain_result(f"菜单渲染失败: {e}")
-        
-        finally:
-            if debug:
-                logger.info("========== 菜单请求处理完成 ==========")
     
     def _build_html(self, config: dict, debug: bool) -> str:
         title = config.get("title_text") or "StarFate 功能菜单"
         footer = config.get("footer_text") or "发送对应命令即可使用功能"
         
-        if debug:
-            logger.info(f"标题: {title}")
-            logger.info(f"底部: {footer}")
-        
-        manual_categories = config.get("menu_categories", [])
-        manual_categories = self._normalize_categories(manual_categories, debug)
-        
-        registered_functions = self.plugin._collect_registered_functions()
-        if debug and registered_functions:
-            logger.info(f"扫描到 {len(registered_functions)} 个注册功能")
-        
-        categories = self._merge_registered_functions(manual_categories, registered_functions, debug)
+        categories = config.get("menu_categories", [])
+        categories = self._normalize_categories(categories, debug)
         
         bg_color = config.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
@@ -221,16 +195,11 @@ class MenuHandler:
     
     def _normalize_categories(self, categories: list, debug: bool) -> list:
         result = []
-        if debug:
-            logger.info(f"手动配置分类数量: {len(categories)}")
         
         for cat in categories:
             cat_name = cat.get("category_name", "")
             cat_icon = cat.get("category_icon", "📌")
             function_items = cat.get("function_items", [])
-            
-            if debug:
-                logger.info(f"  分类: {cat_name} | 功能数: {len(function_items)}")
             
             items = []
             for item_str in function_items:
@@ -247,40 +216,12 @@ class MenuHandler:
                         "command": parts[1].strip(),
                         "description": ""
                     })
-                else:
-                    if debug:
-                        logger.warning(f"    格式错误，已跳过: '{item_str}'")
             
             result.append({
                 "name": cat_name,
                 "icon": cat_icon,
                 "items": items
             })
-        
-        return result
-    
-    def _merge_registered_functions(self, categories: list, registered: list, debug: bool) -> list:
-        result = copy.deepcopy(categories)
-        
-        for func in registered:
-            cat_name = func.get("category", "其他功能")
-            cat_icon = func.get("icon", "🔧")
-            
-            cat = next((c for c in result if c.get("name") == cat_name), None)
-            if not cat:
-                cat = {"name": cat_name, "icon": cat_icon, "items": []}
-                result.append(cat)
-                if debug:
-                    logger.info(f"  自动创建分类: {cat_name}")
-            
-            cat["items"].append({
-                "name": func.get("name", ""),
-                "command": func.get("command", ""),
-                "description": func.get("description", "")
-            })
-            
-            if debug:
-                logger.info(f"  注册功能: {func.get('name')} -> {cat_name}")
         
         return result
     
