@@ -122,7 +122,7 @@ class StarFateMenuPlugin(Star):
 
     async def _check_admin(self, event: AstrMessageEvent) -> bool:
         global_config = self.context.get_config()
-        admin_list = global_config.get("admin_list", [])
+        admin_list = global_config.get("admin_id", [])
         user_id = str(event.get_sender_id())
         return user_id in admin_list
 
