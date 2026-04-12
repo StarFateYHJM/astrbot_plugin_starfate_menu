@@ -23,7 +23,7 @@ class StarFateMenuPlugin(Star):
         if isinstance(data_path, str):
             data_path = Path(data_path)
         self.data_dir = data_path / "plugin_data" / self.name
-        self.data_dir.mkdir(parents=True, exist_ok=True)        
+        self.data_dir.mkdir(parents=True, exist_ok=True)
         
         self.menu_file = self.data_dir / "menu_content.json"
         self._init_default_menu()
@@ -57,11 +57,15 @@ class StarFateMenuPlugin(Star):
             page_keywords_prev = ["上一页", "prev", "上页", "<"]
             
             if msg in page_keywords_next:
-                await self._change_page(event, 1)
+                async for result in self._change_page(event, 1):
+                    if result:
+                        yield result
                 event.stop_event()
                 return
             elif msg in page_keywords_prev:
-                await self._change_page(event, -1)
+                async for result in self._change_page(event, -1):
+                    if result:
+                        yield result
                 event.stop_event()
                 return
         
@@ -85,8 +89,7 @@ class StarFateMenuPlugin(Star):
             logger.info(f"用户 {user_id} 翻页: {current_page} -> {new_page}")
         
         async for result in self.handler.handle(event, page=new_page, menu_id=menu_id):
-            if result:
-                yield result
+            yield result
 
     @filter.command("sfmenu_reload")
     async def cmd_reload(self, event: AstrMessageEvent):
