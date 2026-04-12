@@ -21,9 +21,10 @@ class MenuHandler:
         # 获取触发命令列表
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
         
-        # 判断消息类型
-        is_private = event.is_private()
-        is_group = event.is_group()
+        # 判断消息类型：群聊时有 group_id，私聊时为空或 None
+        group_id = event.get_group_id()
+        is_private = not group_id
+        is_group = bool(group_id)
         
         # 检查是否命中触发命令
         triggered = False
@@ -48,20 +49,16 @@ class MenuHandler:
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         """检查是否@了机器人"""
-        if hasattr(event, 'is_at_me') and callable(event.is_at_me):
-            try:
-                return event.is_at_me()
-            except:
-                pass
-        
-        bot_qq = self.plugin.context.get_config().get("bot_qq", "")
-        if bot_qq:
-            for segment in event.get_messages():
+        # 方法1：检查消息是否包含 @机器人
+        message_obj = event.message_obj
+        if message_obj and hasattr(message_obj, 'message'):
+            for segment in message_obj.message:
                 if hasattr(segment, 'type') and segment.type == "At":
                     qq = getattr(segment, 'qq', None)
-                    if qq and str(qq) == str(bot_qq):
-                        return True
-        
+                    if qq:
+                        self_id = event.get_self_id()
+                        if str(qq) == str(self_id):
+                            return True
         return False
     
     async def _send_menu(self, event: AstrMessageEvent, config: dict):
