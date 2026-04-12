@@ -42,9 +42,9 @@ class MenuHandler:
                 return
         
         # 渲染并发送菜单
-        result = await self._send_menu(event, config)
-        if result:
-            yield result
+        async for result in self._send_menu(event, config):
+            if result:
+                yield result
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         """检查是否@了机器人"""
@@ -69,7 +69,6 @@ class MenuHandler:
         try:
             menu_data = self.menu_manager.get_data()
             image_path = self.renderer.render(menu_data, config)
-            # 使用 event.image_result 发送图片
             yield event.image_result(image_path)
         except Exception as e:
             logger.error(f"菜单渲染失败: {e}")
