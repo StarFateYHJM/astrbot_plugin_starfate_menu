@@ -15,27 +15,104 @@
         "description": "调试模式，开启后日志会输出详细的解析过程",
         "default": false
     },
-    "menu_categories": {
+    "pagination_enabled": {
+        "type": "bool",
+        "description": "是否启用分页",
+        "default": true
+    },
+    "items_per_page": {
+        "type": "int",
+        "description": "每页显示的功能项数量",
+        "default": 10,
+        "min": 5,
+        "max": 30
+    },
+    "menu_sets": {
         "type": "template_list",
-        "description": "菜单分类管理，点击展开编辑分类",
+        "description": "多菜单配置，可创建多套独立的菜单方案",
         "templates": {
             "default": {
-                "name": "新分类",
+                "name": "新菜单",
                 "items": {
-                    "category_name": {
+                    "menu_name": {
                         "type": "string",
-                        "description": "分类名称",
+                        "description": "菜单名称（用于识别和切换）",
+                        "default": "默认菜单"
+                    },
+                    "menu_id": {
+                        "type": "string",
+                        "description": "菜单ID（用于命令切换，如 /menu vip）",
+                        "default": "default"
+                    },
+                    "is_default": {
+                        "type": "bool",
+                        "description": "是否为默认菜单",
+                        "default": false
+                    },
+                    "title_text": {
+                        "type": "string",
+                        "description": "菜单标题",
+                        "default": "StarFate 功能菜单"
+                    },
+                    "footer_text": {
+                        "type": "string",
+                        "description": "底部文字",
+                        "default": "发送对应命令即可使用功能"
+                    },
+                    "background_color": {
+                        "type": "string",
+                        "description": "背景颜色",
+                        "default": "#1A1A2E"
+                    },
+                    "background_image": {
+                        "type": "string",
+                        "description": "背景图片文件名",
                         "default": ""
                     },
-                    "category_icon": {
-                        "type": "string",
-                        "description": "分类图标",
-                        "default": "📌"
+                    "background_overlay": {
+                        "type": "bool",
+                        "description": "是否叠加遮罩",
+                        "default": true
                     },
-                    "function_items": {
-                        "type": "list",
-                        "description": "功能项列表，格式：名称 | 命令 | 描述",
-                        "items": {"type": "string"},
+                    "overlay_color": {
+                        "type": "string",
+                        "description": "遮罩颜色",
+                        "default": "#000000"
+                    },
+                    "overlay_opacity": {
+                        "type": "float",
+                        "description": "遮罩不透明度",
+                        "default": 0.5,
+                        "min": 0.0,
+                        "max": 1.0,
+                        "step": 0.1
+                    },
+                    "categories": {
+                        "type": "template_list",
+                        "description": "分类列表",
+                        "templates": {
+                            "default": {
+                                "name": "新分类",
+                                "items": {
+                                    "category_name": {
+                                        "type": "string",
+                                        "description": "分类名称",
+                                        "default": ""
+                                    },
+                                    "category_icon": {
+                                        "type": "string",
+                                        "description": "分类图标",
+                                        "default": "📌"
+                                    },
+                                    "function_items": {
+                                        "type": "list",
+                                        "description": "功能项，格式：名称 | 命令 | 描述",
+                                        "items": {"type": "string"},
+                                        "default": []
+                                    }
+                                }
+                            }
+                        },
                         "default": []
                     }
                 }
@@ -43,124 +120,129 @@
         },
         "default": [
             {
-                "category_name": "基础功能",
-                "category_icon": "📋",
-                "function_items": [
-                    "协议签订 | /协议 | 查看并签署用户协议"
+                "menu_name": "默认菜单",
+                "menu_id": "default",
+                "is_default": true,
+                "title_text": "StarFate 功能菜单",
+                "footer_text": "发送对应命令即可使用功能",
+                "background_color": "#1A1A2E",
+                "background_image": "",
+                "background_overlay": true,
+                "overlay_color": "#000000",
+                "overlay_opacity": 0.5,
+                "categories": [
+                    {
+                        "category_name": "基础功能",
+                        "category_icon": "📋",
+                        "function_items": [
+                            "协议签订 | /协议 | 查看并签署用户协议"
+                        ]
+                    }
                 ]
             }
         ]
     },
-    "viewport_width": {
-        "type": "int",
-        "description": "图片渲染宽度（像素）",
-        "default": 300,
-        "min": 200,
-        "max": 800
-    },
-    "css_zoom": {
-        "type": "float",
-        "description": "CSS 缩放倍数，值越大越清晰",
-        "default": 2.0,
-        "min": 1.0,
-        "max": 4.0,
-        "step": 0.5
-    },
-    "background_color": {
-        "type": "string",
-        "description": "背景颜色，十六进制格式",
-        "default": "#1A1A2E"
-    },
-    "title_text": {
-        "type": "string",
-        "description": "菜单标题文字",
-        "default": "StarFate 功能菜单"
-    },
-    "title_color": {
-        "type": "string",
-        "description": "标题文字颜色",
-        "default": "#E6B800"
-    },
-    "title_size": {
-        "type": "int",
-        "description": "标题字号（像素）",
-        "default": 56,
-        "min": 20,
-        "max": 100
-    },
-    "category_color": {
-        "type": "string",
-        "description": "分类标题颜色",
-        "default": "#00D2FF"
-    },
-    "category_size": {
-        "type": "int",
-        "description": "分类标题字号（像素）",
-        "default": 40,
-        "min": 16,
-        "max": 80
-    },
-    "item_name_color": {
-        "type": "string",
-        "description": "功能名称颜色",
-        "default": "#FFFFFF"
-    },
-    "item_name_size": {
-        "type": "int",
-        "description": "功能名称字号（像素）",
-        "default": 32,
-        "min": 14,
-        "max": 60
-    },
-    "command_color": {
-        "type": "string",
-        "description": "命令文字颜色",
-        "default": "#888888"
-    },
-    "command_size": {
-        "type": "int",
-        "description": "命令字号（像素）",
-        "default": 28,
-        "min": 12,
-        "max": 50
-    },
-    "description_color": {
-        "type": "string",
-        "description": "功能描述文字颜色",
-        "default": "#AAAAAA"
-    },
-    "description_size": {
-        "type": "int",
-        "description": "功能描述字号（像素）",
-        "default": 26,
-        "min": 12,
-        "max": 50
-    },
-    "footer_text": {
-        "type": "string",
-        "description": "底部说明文字",
-        "default": "发送对应命令即可使用功能"
-    },
-    "footer_color": {
-        "type": "string",
-        "description": "底部文字颜色",
-        "default": "#666666"
-    },
-    "footer_size": {
-        "type": "int",
-        "description": "底部文字字号（像素）",
-        "default": 28,
-        "min": 12,
-        "max": 50
-    },
-    "border_color": {
-        "type": "string",
-        "description": "分割线颜色",
-        "default": "#333355"
-    },
-    "padding_body": {
-        "type": "string",
-        "description": "页面内边距，CSS 格式",
-        "default": "60px 80px"
+    "global_styles": {
+        "type": "object",
+        "description": "全局样式配置",
+        "properties": {
+            "viewport_width": {
+                "type": "int",
+                "description": "图片渲染宽度",
+                "default": 300,
+                "min": 200,
+                "max": 800
+            },
+            "css_zoom": {
+                "type": "float",
+                "description": "CSS缩放倍数",
+                "default": 2.0,
+                "min": 1.0,
+                "max": 4.0,
+                "step": 0.5
+            },
+            "title_color": {
+                "type": "string",
+                "description": "标题颜色",
+                "default": "#E6B800"
+            },
+            "title_size": {
+                "type": "int",
+                "description": "标题字号",
+                "default": 56,
+                "min": 20,
+                "max": 100
+            },
+            "category_color": {
+                "type": "string",
+                "description": "分类标题颜色",
+                "default": "#00D2FF"
+            },
+            "category_size": {
+                "type": "int",
+                "description": "分类标题字号",
+                "default": 40,
+                "min": 16,
+                "max": 80
+            },
+            "item_name_color": {
+                "type": "string",
+                "description": "功能名称颜色",
+                "default": "#FFFFFF"
+            },
+            "item_name_size": {
+                "type": "int",
+                "description": "功能名称字号",
+                "default": 32,
+                "min": 14,
+                "max": 60
+            },
+            "command_color": {
+                "type": "string",
+                "description": "命令颜色",
+                "default": "#888888"
+            },
+            "command_size": {
+                "type": "int",
+                "description": "命令字号",
+                "default": 28,
+                "min": 12,
+                "max": 50
+            },
+            "description_color": {
+                "type": "string",
+                "description": "描述颜色",
+                "default": "#AAAAAA"
+            },
+            "description_size": {
+                "type": "int",
+                "description": "描述字号",
+                "default": 26,
+                "min": 12,
+                "max": 50
+            },
+            "footer_color": {
+                "type": "string",
+                "description": "底部颜色",
+                "default": "#666666"
+            },
+            "footer_size": {
+                "type": "int",
+                "description": "底部字号",
+                "default": 28,
+                "min": 12,
+                "max": 50
+            },
+            "border_color": {
+                "type": "string",
+                "description": "分割线颜色",
+                "default": "#333355"
+            },
+            "padding_body": {
+                "type": "string",
+                "description": "页面内边距",
+                "default": "60px 80px"
+            }
+        }
     }
 }
