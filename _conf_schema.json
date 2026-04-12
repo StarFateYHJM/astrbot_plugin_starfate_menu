@@ -41,22 +41,7 @@
                 }
             }
         },
-        "default": [
-            {
-                "category_name": "基础功能",
-                "category_icon": "📋",
-                "function_items": [
-                    "协议签订 | /协议 | 查看并签署用户协议"
-                ]
-            },
-            {
-                "category_name": "娱乐功能",
-                "category_icon": "🎮",
-                "function_items": [
-                    "示例功能 | /example | 这是一个示例功能"
-                ]
-            }
-        ]
+        "default": []
     },
     "viewport_width": {
         "type": "int",
