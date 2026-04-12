@@ -92,21 +92,13 @@ class MenuHandler:
         border_color = menu.get("border_color", "#333355")
         css_zoom = menu.get("css_zoom", 2.0)
         padding_body = menu.get("padding_body", "40px 50px")
-        container_align = menu.get("container_align", "center")
-        
-        align_map = {
-            "left": "flex-start",
-            "center": "center",
-            "right": "flex-end"
-        }
-        align_value = align_map.get(container_align, "center")
         
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
         
         if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;"
+            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
             if menu.get("background_overlay", True):
                 overlay_color = menu.get("overlay_color", "#000000")
                 overlay_opacity = menu.get("overlay_opacity", 0.5)
@@ -123,17 +115,11 @@ class MenuHandler:
                     padding: 0;
                     box-sizing: border-box;
                 }}
-                html, body {{
-                    width: 100%;
-                    min-height: 100vh;
-                }}
                 body {{
                     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
                     zoom: {css_zoom};
                     background-color: transparent;
-                    display: flex;
-                    align-items: center;
-                    justify-content: {align_value};
+                    display: inline-block;
                 }}
                 .menu-container {{
                     display: inline-block;
@@ -253,31 +239,6 @@ class MenuHandler:
                     {content}
                 </div>
             </div>
-            <script>
-                (function() {{
-                    var bgImage = '{bg_image}';
-                    var maxSize = 2000;
-                    
-                    if (bgImage) {{
-                        var img = new Image();
-                        img.onload = function() {{
-                            var width = this.width;
-                            var height = this.height;
-                            
-                            if (width > maxSize || height > maxSize) {{
-                                var scale = Math.min(maxSize / width, maxSize / height);
-                                width = Math.round(width * scale);
-                                height = Math.round(height * scale);
-                            }}
-                            
-                            var container = document.querySelector('.menu-container');
-                            container.style.width = width + 'px';
-                            container.style.minHeight = height + 'px';
-                        }};
-                        img.src = bgImage;
-                    }}
-                }})();
-            </script>
         </body>
         </html>
         '''
