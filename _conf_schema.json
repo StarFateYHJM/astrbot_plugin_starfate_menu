@@ -12,7 +12,7 @@
     },
     "debug_mode": {
         "type": "bool",
-        "description": "调试模式，开启后日志会输出详细的解析过程，用于排查配置问题",
+        "description": "调试模式，开启后日志会输出详细的解析过程",
         "default": false
     },
     "menu_categories": {
@@ -25,7 +25,7 @@
                     "category_name": {
                         "type": "string",
                         "description": "分类名称",
-                        "default": "新分类"
+                        "default": ""
                     },
                     "category_icon": {
                         "type": "string",
@@ -34,14 +34,22 @@
                     },
                     "function_items": {
                         "type": "list",
-                        "description": "功能项列表，每项格式：功能名称 | 命令 | 描述",
+                        "description": "功能项列表，格式：名称 | 命令 | 描述",
                         "items": {"type": "string"},
                         "default": []
                     }
                 }
             }
         },
-        "default": []
+        "default": [
+            {
+                "category_name": "基础功能",
+                "category_icon": "📋",
+                "function_items": [
+                    "协议签订 | /协议 | 查看并签署用户协议"
+                ]
+            }
+        ]
     },
     "viewport_width": {
         "type": "int",
@@ -52,7 +60,7 @@
     },
     "css_zoom": {
         "type": "float",
-        "description": "CSS 缩放倍数，值越大图片越清晰",
+        "description": "CSS 缩放倍数，值越大越清晰",
         "default": 2.0,
         "min": 1.0,
         "max": 4.0,
