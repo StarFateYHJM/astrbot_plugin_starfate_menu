@@ -125,7 +125,7 @@ class MenuHandler:
                     display: inline-block;
                 }}
                 .menu-container {{
-                    display: inline-block;
+                    display: block;
                     position: relative;
                     {bg_style}
                     padding: {padding_body};
