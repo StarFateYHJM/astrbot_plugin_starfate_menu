@@ -121,6 +121,11 @@ class MenuHandler:
         css_zoom = menu.get("css_zoom", 2.0)
         
         bg_image = menu.get("background_image", "")
+        if bg_image:
+            bg_style = f"background-image: url('{bg_image}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;"
+        else:
+            bg_style = f"background-color: {bg_color};"
+        
         overlay_html = ""
         if bg_image and menu.get("background_overlay", True):
             overlay_color = menu.get("overlay_color", "#000000")
@@ -184,10 +189,7 @@ class MenuHandler:
                     position: absolute;
                     top: 0; left: 0;
                     width: 100%; height: 100%;
-                    background-image: url('{bg_image}');
-                    background-size: cover;
-                    background-position: center;
-                    background-repeat: no-repeat;
+                    {bg_style}
                     z-index: 0;
                 }}
                 .overlay {{
@@ -271,11 +273,20 @@ class MenuHandler:
             <script>
                 (function() {{
                     var bgImage = '{bg_image}';
+                    var maxSize = 2000;
+                    
                     if (bgImage) {{
                         var img = new Image();
                         img.onload = function() {{
                             var width = this.width;
                             var height = this.height;
+                            
+                            if (width > maxSize || height > maxSize) {{
+                                var scale = Math.min(maxSize / width, maxSize / height);
+                                width = Math.round(width * scale);
+                                height = Math.round(height * scale);
+                            }}
+                            
                             document.body.style.width = width + 'px';
                             document.body.style.height = height + 'px';
                         }};
