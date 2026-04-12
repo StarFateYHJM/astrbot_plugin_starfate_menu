@@ -9,7 +9,7 @@
 
 ## 效果预览
 
-![菜单效果图](https://img.cdn1.vip/i/69db993dd330c_1775999293.webp)
+![菜单效果图]([https://img.cdn1.vip/i/69db993dd330c_1775999293.webp](https://img.cdn1.vip/i/69db9a459f3fa_1775999557.webp))
 
 ---
 
