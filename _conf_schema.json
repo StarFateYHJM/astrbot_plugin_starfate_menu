@@ -7,47 +7,156 @@
     },
     "group_require_at": {
         "type": "bool",
-        "description": "群聊是否需要@机器人",
+        "description": "群聊是否需要@机器人才能触发",
         "default": true
     },
-    "image_width": {
+    "viewport_width": {
         "type": "int",
-        "description": "图片宽度（像素）",
-        "default": 600
+        "description": "图片渲染宽度（像素）",
+        "default": 300,
+        "min": 200,
+        "max": 800
     },
-    "image_background": {
+    "css_zoom": {
+        "type": "float",
+        "description": "CSS 缩放倍数（值越大图片越清晰，但文件也越大）",
+        "default": 2.0,
+        "min": 1.0,
+        "max": 4.0,
+        "step": 0.5
+    },
+    "background_color": {
         "type": "string",
-        "description": "背景颜色（十六进制）",
+        "description": "背景颜色（十六进制，如 #1A1A2E）",
         "default": "#1A1A2E"
+    },
+    "title_text": {
+        "type": "string",
+        "description": "菜单标题文字",
+        "default": "🌟 StarFate 功能菜单"
     },
     "title_color": {
         "type": "string",
-        "description": "标题颜色",
+        "description": "标题文字颜色",
         "default": "#E6B800"
+    },
+    "title_size": {
+        "type": "int",
+        "description": "标题字号（px）",
+        "default": 56,
+        "min": 20,
+        "max": 100
     },
     "category_color": {
         "type": "string",
         "description": "分类标题颜色",
         "default": "#00D2FF"
     },
+    "category_size": {
+        "type": "int",
+        "description": "分类标题字号（px）",
+        "default": 40,
+        "min": 16,
+        "max": 80
+    },
     "item_name_color": {
         "type": "string",
         "description": "功能名称颜色",
         "default": "#FFFFFF"
     },
+    "item_name_size": {
+        "type": "int",
+        "description": "功能名称字号（px）",
+        "default": 32,
+        "min": 14,
+        "max": 60
+    },
     "command_color": {
         "type": "string",
-        "description": "命令颜色",
+        "description": "命令文字颜色",
         "default": "#888888"
+    },
+    "command_size": {
+        "type": "int",
+        "description": "命令字号（px）",
+        "default": 28,
+        "min": 12,
+        "max": 50
     },
     "description_color": {
         "type": "string",
-        "description": "描述颜色",
+        "description": "功能描述文字颜色",
         "default": "#AAAAAA"
+    },
+    "description_size": {
+        "type": "int",
+        "description": "功能描述字号（px）",
+        "default": 26,
+        "min": 12,
+        "max": 50
+    },
+    "footer_text": {
+        "type": "string",
+        "description": "底部文字",
+        "default": "发送对应命令即可使用功能"
     },
     "footer_color": {
         "type": "string",
         "description": "底部文字颜色",
         "default": "#666666"
+    },
+    "footer_size": {
+        "type": "int",
+        "description": "底部文字字号（px）",
+        "default": 28,
+        "min": 12,
+        "max": 50
+    },
+    "border_color": {
+        "type": "string",
+        "description": "分割线颜色",
+        "default": "#333355"
+    },
+    "padding_body": {
+        "type": "string",
+        "description": "页面内边距（CSS 格式，如 60px 80px）",
+        "default": "60px 80px"
+    },
+    "custom_items": {
+        "type": "template_list",
+        "description": "📋 手动添加功能项（用于未自动注册的插件）",
+        "templates": {
+            "default": {
+                "name": "新功能项",
+                "items": {
+                    "category": {
+                        "type": "string",
+                        "description": "所属分类",
+                        "default": "其他功能"
+                    },
+                    "icon": {
+                        "type": "string",
+                        "description": "分类图标（emoji）",
+                        "default": "🔧"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "description": "功能名称",
+                        "default": "新功能"
+                    },
+                    "command": {
+                        "type": "string",
+                        "description": "触发命令",
+                        "default": "/newcmd"
+                    },
+                    "description": {
+                        "type": "text",
+                        "description": "功能描述",
+                        "default": "这是一个自定义功能"
+                    }
+                }
+            }
+        },
+        "default": []
     }
 }
