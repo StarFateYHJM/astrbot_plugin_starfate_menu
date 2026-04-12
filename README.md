@@ -78,24 +78,6 @@ git clone https://github.com/YHJM/astrbot_plugin_starfate_menu.git
 
 ---
 
-## 目录结构
-
-astrbot_plugin_starfate_menu/
-├── __init__.py
-├── main.py
-├── metadata.yaml
-├── _conf_schema.json
-├── core/
-│   ├── __init__.py
-│   └── menu_manager.py
-├── handlers/
-│   ├── __init__.py
-│   └── menu_handler.py
-└── utils/
-    ├── __init__.py
-    └── helpers.py
-
----
 
 ## 作者
 
