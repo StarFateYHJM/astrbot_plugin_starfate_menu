@@ -6,7 +6,6 @@ from astrbot.api import logger
 
 from .handlers.menu_handler import MenuHandler
 from .core.menu_manager import MenuManager
-from .core.image_renderer import ImageRenderer
 
 
 @register("astrbot_plugin_starfate_menu", "TF-MYMSI", "StarFate 功能菜单", "1.0.0")
@@ -16,10 +15,9 @@ class StarFateMenuPlugin(Star):
         self.name = "astrbot_plugin_starfate_menu"
         self.display_name = "StarFate 功能菜单"
         
-        # 获取插件数据目录（兼容字符串返回值）
+        # 获取插件数据目录
         from astrbot.core.utils.astrbot_path import get_astrbot_data_path
         data_path = get_astrbot_data_path()
-        # 兼容字符串和 Path 对象两种情况
         if isinstance(data_path, str):
             data_path = Path(data_path)
         self.data_dir = data_path / "plugin_data" / self.name
@@ -33,10 +31,9 @@ class StarFateMenuPlugin(Star):
         
         # 初始化组件
         self.menu_manager = MenuManager(self.menu_file)
-        self.renderer = ImageRenderer(self.data_dir)
-        self.handler = MenuHandler(self, self.menu_manager, self.renderer)
+        self.handler = MenuHandler(self, self.menu_manager)
         
-        logger.info(f"{self.display_name} 插件已加载，数据目录: {self.data_dir}")
+        logger.info(f"{self.display_name} 插件已加载（HTML渲染模式）")
 
     def _init_default_menu(self):
         """初始化默认菜单文件"""
@@ -74,7 +71,6 @@ class StarFateMenuPlugin(Star):
                 has_result = True
                 yield result
         
-        # 如果产出了结果，阻止事件继续传递（避免触发 LLM）
         if has_result:
             event.stop_event()
 
