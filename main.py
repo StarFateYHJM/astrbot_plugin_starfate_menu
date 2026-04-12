@@ -43,17 +43,9 @@ class StarFateMenuPlugin(Star):
     def _init_default_menu(self):
         if not self.menu_file.exists():
             default_menu = {
-                "title": "StarFate 功能菜单",
+                "title": "功能菜单",
                 "footer": "发送对应命令即可使用功能",
-                "categories": [
-                    {
-                        "name": "基础功能",
-                        "icon": "📋",
-                        "items": [
-                            {"name": "协议签订", "command": "/协议", "description": "查看并签署用户协议"}
-                        ]
-                    }
-                ]
+                "categories": []
             }
             with open(self.menu_file, "w", encoding="utf-8") as f:
                 json.dump(default_menu, f, ensure_ascii=False, indent=2)
@@ -64,7 +56,6 @@ class StarFateMenuPlugin(Star):
         msg = event.message_str.strip().lower()
         user_id = str(event.get_sender_id())
         
-        # 翻页处理
         if self.config.get("pagination_enabled", True):
             page_keywords_next = ["下一页", "next", "下页", ">"]
             page_keywords_prev = ["上一页", "prev", "上页", "<"]
@@ -78,7 +69,6 @@ class StarFateMenuPlugin(Star):
                 event.stop_event()
                 return
         
-        # 菜单触发
         has_result = False
         async for result in self.handler.handle(event):
             if result:
@@ -108,7 +98,7 @@ class StarFateMenuPlugin(Star):
             yield event.plain_result("权限不足")
             return
         self.menu_manager.reload()
-        yield event.plain_result("StarFate 菜单配置已重载")
+        yield event.plain_result("菜单配置已重载")
 
     @filter.command("sfmenu_export")
     async def cmd_export(self, event: AstrMessageEvent):
