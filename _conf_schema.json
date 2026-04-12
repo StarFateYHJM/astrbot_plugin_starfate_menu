@@ -10,13 +10,6 @@
         "description": "调试模式",
         "default": false
     },
-    "viewport_width": {
-        "type": "int",
-        "description": "截图视口宽度",
-        "default": 800,
-        "min": 400,
-        "max": 2000
-    },
     "menu_sets": {
         "type": "template_list",
         "description": "多菜单配置，每个菜单完全独立",
