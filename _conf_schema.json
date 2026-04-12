@@ -10,6 +10,11 @@
         "description": "群聊是否需要艾特机器人才能触发",
         "default": true
     },
+    "debug_mode": {
+        "type": "bool",
+        "description": "调试模式，开启后日志会输出详细的解析过程，用于排查配置问题",
+        "default": false
+    },
     "menu_categories": {
         "type": "template_list",
         "description": "菜单分类管理，点击展开编辑分类",
@@ -24,12 +29,12 @@
                     },
                     "category_icon": {
                         "type": "string",
-                        "description": "分类图标，建议使用emoji",
+                        "description": "分类图标",
                         "default": "📌"
                     },
                     "function_items": {
                         "type": "list",
-                        "description": "该分类下的功能项，每项格式：功能名称 | 命令 | 描述",
+                        "description": "功能项列表，每项格式：功能名称 | 命令 | 描述",
                         "items": {"type": "string"},
                         "default": []
                     }
@@ -62,7 +67,7 @@
     },
     "css_zoom": {
         "type": "float",
-        "description": "CSS缩放倍数，值越大图片越清晰但文件也越大",
+        "description": "CSS 缩放倍数，值越大图片越清晰",
         "default": 2.0,
         "min": 1.0,
         "max": 4.0,
@@ -162,7 +167,7 @@
     },
     "padding_body": {
         "type": "string",
-        "description": "页面内边距，CSS格式如 60px 80px",
+        "description": "页面内边距，CSS 格式",
         "default": "60px 80px"
     }
 }
