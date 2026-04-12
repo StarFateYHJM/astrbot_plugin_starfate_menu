@@ -20,56 +20,33 @@ class MenuHandler:
         if debug:
             logger.info("=" * 50)
             logger.info(f"[DEBUG] 收到消息: user={user_id}, msg='{raw_msg}'")
-            logger.info(f"[DEBUG] page={page}, menu_id={menu_id}")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
-        
-        if debug:
-            logger.info(f"[DEBUG] 触发命令: {trigger_commands}")
         
         group_id = event.get_group_id()
         is_group = bool(group_id)
         
-        if debug:
-            logger.info(f"[DEBUG] 群聊: {is_group}, group_id: {group_id}")
-        
         triggered = False
         requested_menu_id = menu_id
-        matched_cmd = None
         
         for cmd in trigger_commands:
             cmd_clean = cmd.lstrip('/')
             pattern = rf'^(/{cmd_clean}|{cmd_clean})(\s|$)'
-            
-            if debug:
-                logger.info(f"[DEBUG] 尝试匹配: cmd='{cmd}', pattern='{pattern}'")
-            
             match = re.match(pattern, raw_msg, re.IGNORECASE)
             if match:
                 triggered = True
-                matched_cmd = cmd
-                
                 if not requested_menu_id:
                     remaining = raw_msg[match.end():].strip()
                     if remaining:
                         requested_menu_id = remaining.split()[0]
-                        if debug:
-                            logger.info(f"[DEBUG] 提取菜单ID: '{requested_menu_id}'")
                 break
         
-        if debug:
-            logger.info(f"[DEBUG] 触发结果: triggered={triggered}, matched='{matched_cmd}', menu_id='{requested_menu_id}'")
-        
         if not triggered and page is None:
-            if debug:
-                logger.info("[DEBUG] 未触发，退出")
             return
         
         if is_group:
             group_require_at = config.get("group_require_at", True)
             if group_require_at and not self._is_at_me(event):
-                if debug:
-                    logger.info("[DEBUG] 群聊未@机器人，退出")
                 return
         
         menu_sets = config.get("menu_sets", [])
@@ -109,9 +86,6 @@ class MenuHandler:
                 "full_page": True
             }
             
-            if debug:
-                logger.info(f"[DEBUG] 渲染: width={render_options['width']}, html_len={len(html)}")
-            
             image_url = await self.plugin.html_render(html, {}, options=render_options)
             logger.info("菜单图片已生成")
             yield event.image_result(image_url)
@@ -122,9 +96,6 @@ class MenuHandler:
                 import traceback
                 logger.error(traceback.format_exc())
             yield event.plain_result(f"菜单渲染失败: {e}")
-        finally:
-            if debug:
-                logger.info("=" * 50)
 
     def _build_html(self, config: dict, menu: dict, debug: bool, page: int) -> str:
         title = menu.get("title_text") or "功能菜单"
@@ -142,30 +113,28 @@ class MenuHandler:
             categories = all_categories
             total_pages = 1
         
-        if debug:
-            logger.info(f"[DEBUG] 分页: page={page+1}/{total_pages}")
-        
-        # 样式配置
+        # 从菜单配置读取所有样式（每个菜单独立）
         bg_color = menu.get("background_color", "#1A1A2E")
-        title_color = config.get("title_color", "#E6B800")
-        title_size = config.get("title_size", 56)
-        category_color = config.get("category_color", "#00D2FF")
-        category_size = config.get("category_size", 40)
-        item_name_color = config.get("item_name_color", "#FFFFFF")
-        item_name_size = config.get("item_name_size", 32)
-        command_color = config.get("command_color", "#888888")
-        command_size = config.get("command_size", 28)
-        desc_color = config.get("description_color", "#AAAAAA")
-        desc_size = config.get("description_size", 26)
-        footer_color = config.get("footer_color", "#666666")
-        footer_size = config.get("footer_size", 28)
-        border_color = config.get("border_color", "#333355")
+        title_color = menu.get("title_color", "#E6B800")
+        title_size = menu.get("title_size", 56)
+        category_color = menu.get("category_color", "#00D2FF")
+        category_size = menu.get("category_size", 40)
+        item_name_color = menu.get("item_name_color", "#FFFFFF")
+        item_name_size = menu.get("item_name_size", 32)
+        command_color = menu.get("command_color", "#888888")
+        command_size = menu.get("command_size", 28)
+        desc_color = menu.get("description_color", "#AAAAAA")
+        desc_size = menu.get("description_size", 26)
+        footer_color = menu.get("footer_color", "#666666")
+        footer_size = menu.get("footer_size", 28)
+        border_color = menu.get("border_color", "#333355")
+        
+        # 全局配置
         padding_body = config.get("padding_body", "20px")
         css_zoom = config.get("css_zoom", 2.0)
         menu_max_width = config.get("menu_max_width", 600)
         menu_min_height = config.get("menu_min_height", 400)
         
-        # 背景样式
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
@@ -176,10 +145,7 @@ class MenuHandler:
                 overlay_color = menu.get("overlay_color", "#000000")
                 overlay_opacity = menu.get("overlay_opacity", 0.5)
                 overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
-                if debug:
-                    logger.info(f"[DEBUG] 背景图片: {bg_image}, 遮罩: {overlay_color} {overlay_opacity}")
         
-        # 构建分类HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
@@ -229,21 +195,9 @@ class MenuHandler:
                     padding: {padding_body};
                     min-height: 100vh;
                     zoom: {css_zoom};
-                    position: relative;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                }}
-                .overlay {{
-                    position: fixed;
-                    top: 0; left: 0;
-                    width: 100%; height: 100%;
-                    pointer-events: none;
-                    z-index: 1;
-                }}
-                .menu-wrapper {{
-                    position: relative;
-                    z-index: 2;
                 }}
                 .menu-container {{
                     width: auto;
@@ -253,7 +207,17 @@ class MenuHandler:
                     position: relative;
                     {bg_style}
                     padding: 40px 50px;
-                    border-radius: 0;
+                }}
+                .overlay {{
+                    position: absolute;
+                    top: 0; left: 0;
+                    width: 100%; height: 100%;
+                    pointer-events: none;
+                    z-index: 1;
+                }}
+                .menu-title, .category, .menu-footer, .page-info {{
+                    position: relative;
+                    z-index: 2;
                 }}
                 .menu-title {{
                     font-size: {title_size}px;
@@ -313,14 +277,12 @@ class MenuHandler:
             </style>
         </head>
         <body>
-            {overlay_html}
-            <div class="menu-wrapper">
-                <div class="menu-container" id="menuContainer">
-                    <div class="menu-title">{title}</div>
-                    {categories_html}
-                    <div class="menu-footer">{footer}</div>
-                    {page_info}
-                </div>
+            <div class="menu-container" id="menuContainer">
+                {overlay_html}
+                <div class="menu-title">{title}</div>
+                {categories_html}
+                <div class="menu-footer">{footer}</div>
+                {page_info}
             </div>
             <script>
                 (function() {{
@@ -343,7 +305,7 @@ class MenuHandler:
                             
                             container.style.width = finalWidth + 'px';
                             container.style.minHeight = finalHeight + 'px';
-                            container.style.backgroundSize = '${{finalWidth}}px ${{finalHeight}}px';
+                            container.style.backgroundSize = finalWidth + 'px ' + finalHeight + 'px';
                         }};
                         img.src = bgImage;
                     }}
@@ -360,8 +322,6 @@ class MenuHandler:
                 continue
             parts = cat_str.split("|")
             if len(parts) < 3:
-                if debug:
-                    logger.warning(f"[DEBUG] 分类格式错误: '{cat_str[:50]}'")
                 continue
             
             cat_name = parts[0].strip()
