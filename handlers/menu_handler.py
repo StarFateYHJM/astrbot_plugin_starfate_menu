@@ -1,4 +1,5 @@
 import re
+import json
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
@@ -83,6 +84,7 @@ class MenuHandler:
 
     def _build_html(self, config: dict, menu: dict, debug: bool) -> str:
         content = menu.get("content", "")
+        content_escaped = json.dumps(content)
         
         bg_color = menu.get("background_color", "#1A1A2E")
         text_color = menu.get("text_color", "#FFFFFF")
@@ -109,6 +111,7 @@ class MenuHandler:
         <html>
         <head>
             <meta charset="UTF-8">
+            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
             <style>
                 * {{
                     margin: 0;
@@ -235,10 +238,14 @@ class MenuHandler:
         <body>
             <div class="menu-container">
                 {overlay_html}
-                <div class="content">
-                    {content}
-                </div>
+                <div class="content" id="content"></div>
             </div>
+            <script>
+                (function() {{
+                    var markdown = {content_escaped};
+                    document.getElementById('content').innerHTML = marked.parse(markdown);
+                }})();
+            </script>
         </body>
         </html>
         '''
