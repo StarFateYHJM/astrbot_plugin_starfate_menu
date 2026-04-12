@@ -27,6 +27,103 @@
         "min": 5,
         "max": 30
     },
+    "viewport_width": {
+        "type": "int",
+        "description": "图片渲染宽度",
+        "default": 300,
+        "min": 200,
+        "max": 800
+    },
+    "css_zoom": {
+        "type": "float",
+        "description": "CSS缩放倍数",
+        "default": 2.0,
+        "min": 1.0,
+        "max": 4.0,
+        "step": 0.5
+    },
+    "title_color": {
+        "type": "string",
+        "description": "标题颜色",
+        "default": "#E6B800"
+    },
+    "title_size": {
+        "type": "int",
+        "description": "标题字号",
+        "default": 56,
+        "min": 20,
+        "max": 100
+    },
+    "category_color": {
+        "type": "string",
+        "description": "分类标题颜色",
+        "default": "#00D2FF"
+    },
+    "category_size": {
+        "type": "int",
+        "description": "分类标题字号",
+        "default": 40,
+        "min": 16,
+        "max": 80
+    },
+    "item_name_color": {
+        "type": "string",
+        "description": "功能名称颜色",
+        "default": "#FFFFFF"
+    },
+    "item_name_size": {
+        "type": "int",
+        "description": "功能名称字号",
+        "default": 32,
+        "min": 14,
+        "max": 60
+    },
+    "command_color": {
+        "type": "string",
+        "description": "命令颜色",
+        "default": "#888888"
+    },
+    "command_size": {
+        "type": "int",
+        "description": "命令字号",
+        "default": 28,
+        "min": 12,
+        "max": 50
+    },
+    "description_color": {
+        "type": "string",
+        "description": "描述颜色",
+        "default": "#AAAAAA"
+    },
+    "description_size": {
+        "type": "int",
+        "description": "描述字号",
+        "default": 26,
+        "min": 12,
+        "max": 50
+    },
+    "footer_color": {
+        "type": "string",
+        "description": "底部颜色",
+        "default": "#666666"
+    },
+    "footer_size": {
+        "type": "int",
+        "description": "底部字号",
+        "default": 28,
+        "min": 12,
+        "max": 50
+    },
+    "border_color": {
+        "type": "string",
+        "description": "分割线颜色",
+        "default": "#333355"
+    },
+    "padding_body": {
+        "type": "string",
+        "description": "页面内边距",
+        "default": "60px 80px"
+    },
     "menu_sets": {
         "type": "template_list",
         "description": "多菜单配置，可创建多套独立菜单",
@@ -52,7 +149,7 @@
                     "title_text": {
                         "type": "string",
                         "description": "菜单标题",
-                        "default": "StarFate 功能菜单"
+                        "default": "功能菜单"
                     },
                     "footer_text": {
                         "type": "string",
@@ -91,9 +188,7 @@
                         "type": "list",
                         "description": "分类列表，格式：分类名 | 图标 | 功能1名称,命令,描述;功能2名称,命令,描述",
                         "items": {"type": "string"},
-                        "default": [
-                            "基础功能 | 📋 | 协议签订,/协议,查看并签署用户协议"
-                        ]
+                        "default": []
                     }
                 }
             }
@@ -103,120 +198,15 @@
                 "menu_name": "默认菜单",
                 "menu_id": "default",
                 "is_default": true,
-                "title_text": "StarFate 功能菜单",
+                "title_text": "功能菜单",
                 "footer_text": "发送对应命令即可使用功能",
                 "background_color": "#1A1A2E",
                 "background_image": "",
                 "background_overlay": true,
                 "overlay_color": "#000000",
                 "overlay_opacity": 0.5,
-                "categories": [
-                    "基础功能 | 📋 | 协议签订,/协议,查看并签署用户协议"
-                ]
+                "categories": []
             }
         ]
-    },
-    "global_styles": {
-        "type": "object",
-        "description": "全局样式配置",
-        "properties": {
-            "viewport_width": {
-                "type": "int",
-                "description": "图片渲染宽度",
-                "default": 300,
-                "min": 200,
-                "max": 800
-            },
-            "css_zoom": {
-                "type": "float",
-                "description": "CSS缩放倍数",
-                "default": 2.0,
-                "min": 1.0,
-                "max": 4.0,
-                "step": 0.5
-            },
-            "title_color": {
-                "type": "string",
-                "description": "标题颜色",
-                "default": "#E6B800"
-            },
-            "title_size": {
-                "type": "int",
-                "description": "标题字号",
-                "default": 56,
-                "min": 20,
-                "max": 100
-            },
-            "category_color": {
-                "type": "string",
-                "description": "分类标题颜色",
-                "default": "#00D2FF"
-            },
-            "category_size": {
-                "type": "int",
-                "description": "分类标题字号",
-                "default": 40,
-                "min": 16,
-                "max": 80
-            },
-            "item_name_color": {
-                "type": "string",
-                "description": "功能名称颜色",
-                "default": "#FFFFFF"
-            },
-            "item_name_size": {
-                "type": "int",
-                "description": "功能名称字号",
-                "default": 32,
-                "min": 14,
-                "max": 60
-            },
-            "command_color": {
-                "type": "string",
-                "description": "命令颜色",
-                "default": "#888888"
-            },
-            "command_size": {
-                "type": "int",
-                "description": "命令字号",
-                "default": 28,
-                "min": 12,
-                "max": 50
-            },
-            "description_color": {
-                "type": "string",
-                "description": "描述颜色",
-                "default": "#AAAAAA"
-            },
-            "description_size": {
-                "type": "int",
-                "description": "描述字号",
-                "default": 26,
-                "min": 12,
-                "max": 50
-            },
-            "footer_color": {
-                "type": "string",
-                "description": "底部颜色",
-                "default": "#666666"
-            },
-            "footer_size": {
-                "type": "int",
-                "description": "底部字号",
-                "default": 28,
-                "min": 12,
-                "max": 50
-            },
-            "border_color": {
-                "type": "string",
-                "description": "分割线颜色",
-                "default": "#333355"
-            },
-            "padding_body": {
-                "type": "string",
-                "description": "页面内边距",
-                "default": "60px 80px"
-            }
-        }
     }
 }
