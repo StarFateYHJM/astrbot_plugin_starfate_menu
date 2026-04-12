@@ -9,7 +9,7 @@
 
 ## 效果预览
 
-![菜单效果图](./示例_compressed.jpg)
+![菜单效果图](https://img.cdn1.vip/i/69db9cb4902c4_1776000180.webp)
 
 ---
 
