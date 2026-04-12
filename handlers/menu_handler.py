@@ -26,10 +26,11 @@ class MenuHandler:
         is_private = not group_id
         is_group = bool(group_id)
         
-        # 检查是否命中触发命令
+        # 检查是否命中触发命令（支持带/和不带/的版本）
         triggered = False
         for cmd in trigger_commands:
-            if msg == cmd or msg.startswith(cmd + " "):
+            # 精确匹配、前缀匹配、去掉斜杠匹配
+            if msg == cmd or msg.startswith(cmd + " ") or msg == cmd.lstrip('/'):
                 triggered = True
                 break
         
