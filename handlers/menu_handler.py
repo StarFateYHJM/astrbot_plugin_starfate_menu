@@ -43,19 +43,14 @@ class MenuHandler:
             menu_data = self.menu_manager.get_data()
             html = self._build_html(menu_data, config)
             
-            # ✅ 使用官方推荐的 scale 参数来解决清晰度问题
             render_options = {
-                "width": 600,          # 控制视口宽度
-                "full_page": True,     # 截取完整页面
-                "scale": "device"      # 关键参数：让截图适应设备分辨率，解决模糊问题
+                "width": 600,
+                "full_page": True,
+                "scale": "device"
             }
-    
-    image_url = await self.plugin.html_render(html, {}, options=render_options)
-    logger.info("菜单图片已生成（高清模式）")
-    yield event.image_result(image_url)
             
-            image_url = await self.plugin.html_render(html, render_options)
-            logger.info(f"菜单图片已生成（高清模式）")
+            image_url = await self.plugin.html_render(html, {}, options=render_options)
+            logger.info("菜单图片已生成（高清模式）")
             yield event.image_result(image_url)
             
         except Exception as e:
@@ -107,7 +102,7 @@ class MenuHandler:
             </div>
             '''
         
-        # 完整 HTML（添加抗锯齿和优化渲染的样式）
+        # 完整 HTML
         return f'''
         <!DOCTYPE html>
         <html>
