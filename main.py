@@ -29,7 +29,7 @@ class StarFateMenuPlugin(Star):
         self.menu_manager = MenuManager(self.menu_file)
         self.handler = MenuHandler(self, self.menu_manager)
         
-        logger.info(f"{self.display_name} 插件已加载，配置项数量: {len(self.config)}")
+        logger.info(f"{self.display_name} 插件已加载")
 
     def _init_default_menu(self):
         if not self.menu_file.exists():
@@ -76,6 +76,49 @@ class StarFateMenuPlugin(Star):
             return
         content = self.menu_manager.export()
         yield event.plain_result(f"```json\n{content}\n```")
+
+    @filter.command("sfmenu_scan")
+    async def cmd_scan(self, event: AstrMessageEvent):
+        if not await self._check_admin(event):
+            yield event.plain_result("权限不足")
+            return
+        registered = self._collect_registered_functions()
+        if registered:
+            lines = ["已扫描到以下注册功能："]
+            for func in registered:
+                lines.append(f"  {func['icon']} {func['name']} - {func['command']} ({func['category']})")
+            yield event.plain_result("\n".join(lines))
+        else:
+            yield event.plain_result("未扫描到任何注册功能")
+
+    def _collect_registered_functions(self):
+        registered = []
+        
+        try:
+            star_manager = self.context.get_star_manager()
+            plugins = star_manager.get_all_stars()
+        except:
+            logger.warning("无法获取插件列表")
+            return registered
+        
+        for plugin in plugins:
+            try:
+                config = plugin.config or {}
+                menu_reg = config.get("starfate_menu_register", {})
+                
+                if menu_reg.get("enabled", False):
+                    registered.append({
+                        "category": menu_reg.get("category", "其他功能"),
+                        "name": menu_reg.get("display_name") or plugin.display_name or plugin.name,
+                        "command": menu_reg.get("command", ""),
+                        "description": menu_reg.get("description", ""),
+                        "icon": menu_reg.get("icon", "🔧")
+                    })
+            except:
+                continue
+        
+        logger.info(f"共扫描到 {len(registered)} 个注册功能")
+        return registered
 
     async def _check_admin(self, event: AstrMessageEvent) -> bool:
         global_config = self.context.get_config()
