@@ -1,5 +1,7 @@
-from astrbot.core.message import MessageChain, Plain, Image
-from astrbot.core.event import AstrMessageEvent
+from astrbot.api.event import AstrMessageEvent
+from astrbot.api.message import MessageChain, Plain, Image
+from astrbot.api import logger
+
 from ..core.menu_manager import MenuManager
 from ..core.image_renderer import ImageRenderer
 
@@ -48,14 +50,17 @@ class MenuHandler:
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         """检查是否@了机器人"""
         # 内置方法
-        if hasattr(event, 'is_at_me') and event.is_at_me():
-            return True
+        if hasattr(event, 'is_at_me') and callable(event.is_at_me):
+            try:
+                return event.is_at_me()
+            except:
+                pass
         
         # 检查消息段
         bot_qq = self.plugin.context.get_config().get("bot_qq", "")
         if bot_qq:
             for segment in event.get_messages():
-                if segment.type == "At":
+                if hasattr(segment, 'type') and segment.type == "At":
                     qq = getattr(segment, 'qq', None)
                     if qq and str(qq) == str(bot_qq):
                         return True
@@ -78,6 +83,7 @@ class MenuHandler:
             return message
             
         except Exception as e:
+            logger.error(f"菜单渲染失败: {e}")
             # 渲染失败时回退到文本
-            error_msg = f"❌ StarFate 菜单渲染失败: {e}\n\n请检查字体配置或安装 Pillow 库"
+            error_msg = f"❌ StarFate 菜单渲染失败: {e}\n\n请检查是否已安装 Pillow 库"
             return MessageChain().add(Plain(error_msg))
