@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
-from astrbot.api.message import MessageChain, Plain, Image
 from astrbot.api import logger
 
 from .handlers.menu_handler import MenuHandler
