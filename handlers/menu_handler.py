@@ -43,13 +43,17 @@ class MenuHandler:
                 return
         
         # 渲染并发送菜单
-        async for result in self._send_menu(event, config):
-            if result:
-                yield result
+        try:
+            menu_data = self.menu_manager.get_data()
+            image_path = self.renderer.render(menu_data, config)
+            logger.info(f"菜单图片已生成: {image_path}")
+            yield event.image_result(image_path)
+        except Exception as e:
+            logger.error(f"菜单渲染失败: {e}")
+            yield event.plain_result(f"❌ StarFate 菜单渲染失败: {e}\n\n请检查是否已安装 Pillow 库")
     
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         """检查是否@了机器人"""
-        # 方法1：检查消息是否包含 @机器人
         message_obj = event.message_obj
         if message_obj and hasattr(message_obj, 'message'):
             for segment in message_obj.message:
@@ -60,13 +64,3 @@ class MenuHandler:
                         if str(qq) == str(self_id):
                             return True
         return False
-    
-    async def _send_menu(self, event: AstrMessageEvent, config: dict):
-        """渲染并发送菜单图片"""
-        try:
-            menu_data = self.menu_manager.get_data()
-            image_path = self.renderer.render(menu_data, config)
-            yield event.image_result(image_path)
-        except Exception as e:
-            logger.error(f"菜单渲染失败: {e}")
-            yield event.plain_result(f"❌ StarFate 菜单渲染失败: {e}\n\n请检查是否已安装 Pillow 库")
