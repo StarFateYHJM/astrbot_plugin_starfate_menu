@@ -95,16 +95,12 @@ class MenuHandler:
         css_zoom = menu.get("css_zoom", 2.0)
         padding_body = menu.get("padding_body", "40px 50px")
         
-        bg_style = f"background-color: {bg_color};"
-        overlay_html = ""
         bg_image = menu.get("background_image", "")
-        
-        if bg_image:
-            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center; background-repeat: no-repeat;"
-            if menu.get("background_overlay", True):
-                overlay_color = menu.get("overlay_color", "#000000")
-                overlay_opacity = menu.get("overlay_opacity", 0.5)
-                overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+        overlay_html = ""
+        if bg_image and menu.get("background_overlay", True):
+            overlay_color = menu.get("overlay_color", "#000000")
+            overlay_opacity = menu.get("overlay_opacity", 0.5)
+            overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
         
         return f'''
         <!DOCTYPE html>
@@ -121,9 +117,19 @@ class MenuHandler:
                 body {{
                     font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "SimHei", sans-serif;
                     zoom: {css_zoom};
-                    {bg_style}
-                    display: inline-block;
+                    background-color: {bg_color};
                     position: relative;
+                }}
+                .bg-layer {{
+                    position: absolute;
+                    top: 0; left: 0;
+                    z-index: 0;
+                }}
+                .bg-layer img {{
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
                 }}
                 .overlay {{
                     position: absolute;
@@ -133,7 +139,6 @@ class MenuHandler:
                     z-index: 1;
                 }}
                 .menu-container {{
-                    display: block;
                     position: relative;
                     padding: {padding_body};
                     color: {text_color};
@@ -233,6 +238,7 @@ class MenuHandler:
             </style>
         </head>
         <body>
+            <div class="bg-layer" id="bgLayer"></div>
             {overlay_html}
             <div class="menu-container">
                 <div class="content" id="content"></div>
@@ -241,6 +247,30 @@ class MenuHandler:
                 (function() {{
                     var markdown = {content_escaped};
                     document.getElementById('content').innerHTML = marked.parse(markdown);
+                    
+                    var bgImage = '{bg_image}';
+                    var maxSize = 2000;
+                    
+                    if (bgImage) {{
+                        var img = new Image();
+                        img.onload = function() {{
+                            var width = this.width;
+                            var height = this.height;
+                            
+                            if (width > maxSize || height > maxSize) {{
+                                var scale = Math.min(maxSize / width, maxSize / height);
+                                width = Math.round(width * scale);
+                                height = Math.round(height * scale);
+                            }}
+                            
+                            document.body.style.width = width + 'px';
+                            document.body.style.height = height + 'px';
+                            
+                            var bgLayer = document.getElementById('bgLayer');
+                            bgLayer.innerHTML = '<img src="' + bgImage + '" style="width:' + width + 'px;height:' + height + 'px;">';
+                        }};
+                        img.src = bgImage;
+                    }}
                 }})();
             </script>
         </body>
