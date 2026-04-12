@@ -164,17 +164,19 @@ class MenuHandler:
         padding_body = config.get("padding_body", "60px 80px")
         css_zoom = config.get("css_zoom", 2.0)
         
+        bg_color = menu.get("background_color", "#1A1A2E")
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
+        
         if bg_image:
-            bg_path = self.plugin.get_background_path(bg_image)
-            if bg_path:
-                bg_style += f" background-image: url('file://{bg_path}'); background-size: cover; background-position: center;"
-                if menu.get("background_overlay", True):
-                    overlay_color = menu.get("overlay_color", "#000000")
-                    overlay_opacity = menu.get("overlay_opacity", 0.5)
-                    overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+            bg_style += f" background-image: url('{bg_image}'); background-size: cover; background-position: center;"
+            if menu.get("background_overlay", True):
+                overlay_color = menu.get("overlay_color", "#000000")
+                overlay_opacity = menu.get("overlay_opacity", 0.5)
+                overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
+                if debug:
+                    logger.info(f"[DEBUG] 背景图片: {bg_image}, 遮罩: {overlay_color} {overlay_opacity}")
         
         categories_html = ""
         for cat in categories:
