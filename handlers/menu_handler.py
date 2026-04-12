@@ -76,8 +76,14 @@ class MenuHandler:
             logger.info(f"标题: {title}")
             logger.info(f"底部: {footer}")
         
-        categories = config.get("menu_categories", [])
-        categories = self._normalize_categories(categories, debug)
+        manual_categories = config.get("menu_categories", [])
+        manual_categories = self._normalize_categories(manual_categories, debug)
+        
+        registered_functions = self.plugin._collect_registered_functions()
+        if debug and registered_functions:
+            logger.info(f"扫描到 {len(registered_functions)} 个注册功能")
+        
+        categories = self._merge_registered_functions(manual_categories, registered_functions, debug)
         
         bg_color = config.get("background_color", "#1A1A2E")
         title_color = config.get("title_color", "#E6B800")
@@ -118,12 +124,13 @@ class MenuHandler:
                 </div>
                 '''
             
-            categories_html += f'''
-            <div class="category">
-                <div class="category-title">{cat_icon} {cat_name}</div>
-                {items_html}
-            </div>
-            '''
+            if items_html:
+                categories_html += f'''
+                <div class="category">
+                    <div class="category-title">{cat_icon} {cat_name}</div>
+                    {items_html}
+                </div>
+                '''
         
         return f'''
         <!DOCTYPE html>
@@ -215,44 +222,65 @@ class MenuHandler:
     def _normalize_categories(self, categories: list, debug: bool) -> list:
         result = []
         if debug:
-            logger.info(f"分类数量: {len(categories)}")
+            logger.info(f"手动配置分类数量: {len(categories)}")
         
-        for idx, cat in enumerate(categories):
+        for cat in categories:
             cat_name = cat.get("category_name", "")
             cat_icon = cat.get("category_icon", "📌")
             function_items = cat.get("function_items", [])
             
             if debug:
-                logger.info(f"  [分类{idx+1}] 名称: {cat_name} | 图标: {cat_icon} | 原始功能数: {len(function_items)}")
+                logger.info(f"  分类: {cat_name} | 功能数: {len(function_items)}")
             
             items = []
             for item_str in function_items:
                 parts = item_str.split("|")
                 if len(parts) >= 3:
-                    name = parts[0].strip()
-                    command = parts[1].strip()
-                    desc = parts[2].strip()
-                    items.append({"name": name, "command": command, "description": desc})
-                    if debug:
-                        logger.info(f"    功能: {name} | 命令: {command}")
+                    items.append({
+                        "name": parts[0].strip(),
+                        "command": parts[1].strip(),
+                        "description": parts[2].strip()
+                    })
                 elif len(parts) == 2:
-                    name = parts[0].strip()
-                    command = parts[1].strip()
-                    items.append({"name": name, "command": command, "description": ""})
-                    if debug:
-                        logger.info(f"    功能: {name} | 命令: {command} | (无描述)")
+                    items.append({
+                        "name": parts[0].strip(),
+                        "command": parts[1].strip(),
+                        "description": ""
+                    })
                 else:
                     if debug:
-                        logger.warning(f"    功能项格式错误，已跳过: '{item_str}'")
-            
-            if debug:
-                logger.info(f"    有效功能数: {len(items)}")
+                        logger.warning(f"    格式错误，已跳过: '{item_str}'")
             
             result.append({
                 "name": cat_name,
                 "icon": cat_icon,
                 "items": items
             })
+        
+        return result
+    
+    def _merge_registered_functions(self, categories: list, registered: list, debug: bool) -> list:
+        result = copy.deepcopy(categories)
+        
+        for func in registered:
+            cat_name = func.get("category", "其他功能")
+            cat_icon = func.get("icon", "🔧")
+            
+            cat = next((c for c in result if c.get("name") == cat_name), None)
+            if not cat:
+                cat = {"name": cat_name, "icon": cat_icon, "items": []}
+                result.append(cat)
+                if debug:
+                    logger.info(f"  自动创建分类: {cat_name}")
+            
+            cat["items"].append({
+                "name": func.get("name", ""),
+                "command": func.get("command", ""),
+                "description": func.get("description", "")
+            })
+            
+            if debug:
+                logger.info(f"  注册功能: {func.get('name')} -> {cat_name}")
         
         return result
     
