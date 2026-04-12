@@ -97,14 +97,15 @@ class MenuHandler:
         
         pagination_enabled = menu.get("pagination_enabled", True)
         items_per_page = menu.get("items_per_page", 10)
+        columns = menu.get("columns", 1)
+        
+        effective_per_page = items_per_page * columns
         
         if pagination_enabled:
-            categories, total_pages, _ = self._paginate_categories(all_categories, page, items_per_page)
+            categories, total_pages, _ = self._paginate_categories(all_categories, page, effective_per_page)
         else:
             categories = all_categories
             total_pages = 1
-        
-        columns = menu.get("columns", 1)
         
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = menu.get("title_color", "#E6B800")
