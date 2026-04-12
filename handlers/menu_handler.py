@@ -11,29 +11,29 @@ class MenuHandler:
         self.menu_manager = menu_manager
     
     async def handle(self, event: AstrMessageEvent, page: int = None, menu_id: str = None):
-        msg = event.message_str.strip()
+        raw_msg = event.message_str.strip()
+        msg = raw_msg.lower()
         config = self.plugin.config
         debug = config.get("debug_mode", False)
         user_id = str(event.get_sender_id())
         
         if debug:
-            logger.info(f"收到菜单请求: 用户={user_id}, 消息={msg}")
+            logger.info(f"收到菜单请求: 用户={user_id}, 消息={raw_msg}")
         
         trigger_commands = config.get("trigger_commands", ["/menu", "/菜单", "/功能", "/帮助", "/sfmenu"])
+        trigger_commands_lower = [cmd.lower() for cmd in trigger_commands]
         
         group_id = event.get_group_id()
         is_group = bool(group_id)
         
-        # 解析命令中的菜单ID
         triggered = False
         requested_menu_id = menu_id
         
-        for cmd in trigger_commands:
-            cmd_lower = cmd.lower()
-            if msg == cmd_lower or msg.startswith(cmd_lower + " "):
+        for cmd in trigger_commands_lower:
+            if msg == cmd or msg.startswith(cmd + " "):
                 triggered = True
                 if not requested_menu_id:
-                    parts = msg.split(maxsplit=1)
+                    parts = raw_msg.split(maxsplit=1)
                     if len(parts) > 1:
                         requested_menu_id = parts[1].strip()
                 break
@@ -46,13 +46,11 @@ class MenuHandler:
             if group_require_at and not self._is_at_me(event):
                 return
         
-        # 获取菜单配置
         menu_sets = config.get("menu_sets", [])
         if not menu_sets:
             yield event.plain_result("暂无菜单配置，请先在 WebUI 中添加")
             return
         
-        # 选择菜单
         selected_menu = None
         for menu in menu_sets:
             if requested_menu_id and menu.get("menu_id") == requested_menu_id:
@@ -72,10 +70,8 @@ class MenuHandler:
             yield event.plain_result(f"未找到菜单 '{requested_menu_id}'")
             return
         
-        # 保存当前使用的菜单ID
         await self.plugin.put_kv_data(f"menu_current_{user_id}", selected_menu.get("menu_id", "default"))
         
-        # 获取页码
         if page is None:
             page = await self.plugin.get_kv_data(f"menu_page_{user_id}_{selected_menu.get('menu_id')}", 0)
         
@@ -101,17 +97,16 @@ class MenuHandler:
                 import traceback
                 logger.error(traceback.format_exc())
             yield event.plain_result(f"菜单渲染失败: {e}")
+
     def _build_html(self, config: dict, menu: dict, debug: bool, page: int, user_id: str) -> str:
         global_styles = config.get("global_styles", {})
         
         title = menu.get("title_text") or "StarFate 功能菜单"
         footer = menu.get("footer_text") or "发送对应命令即可使用功能"
         
-        # 解析分类和功能
         raw_categories = menu.get("categories", [])
-        all_categories = self._normalize_categories(raw_categories, debug)
+        all_categories = self._parse_categories(raw_categories, debug)
         
-        # 分页处理
         pagination_enabled = config.get("pagination_enabled", True)
         items_per_page = config.get("items_per_page", 10)
         
@@ -127,7 +122,6 @@ class MenuHandler:
         if debug:
             logger.info(f"分页: 第 {page + 1}/{total_pages} 页, 功能项: {total_items}")
         
-        # 样式配置
         bg_color = menu.get("background_color", "#1A1A2E")
         title_color = global_styles.get("title_color", "#E6B800")
         title_size = global_styles.get("title_size", 56)
@@ -145,7 +139,6 @@ class MenuHandler:
         padding_body = global_styles.get("padding_body", "60px 80px")
         css_zoom = global_styles.get("css_zoom", 2.0)
         
-        # 背景样式
         bg_style = f"background-color: {bg_color};"
         overlay_html = ""
         bg_image = menu.get("background_image", "")
@@ -158,7 +151,6 @@ class MenuHandler:
                     overlay_opacity = menu.get("overlay_opacity", 0.5)
                     overlay_html = f'<div class="overlay" style="background-color: {overlay_color}; opacity: {overlay_opacity};"></div>'
         
-        # 构建分类HTML
         categories_html = ""
         for cat in categories:
             cat_name = cat.get("name", "")
@@ -191,7 +183,6 @@ class MenuHandler:
             </div>
             '''
         
-        # 页码信息
         page_info = ""
         if pagination_enabled and total_pages > 1:
             page_info = f'<div class="page-info">第 {page + 1}/{total_pages} 页 | 回复"下一页"或"上一页"翻页</div>'
@@ -302,40 +293,52 @@ class MenuHandler:
         </body>
         </html>
         '''
-    
-    def _normalize_categories(self, categories: list, debug: bool) -> list:
+
+    def _parse_categories(self, categories: list, debug: bool) -> list:
+        """解析 list 格式的分类字符串"""
         result = []
-        for cat in categories:
-            cat_name = cat.get("category_name", "")
-            cat_icon = cat.get("category_icon", "📌")
-            function_items = cat.get("function_items", [])
+        for cat_str in categories:
+            parts = cat_str.split("|")
+            if len(parts) < 3:
+                if debug:
+                    logger.warning(f"分类格式错误，已跳过: '{cat_str}'")
+                continue
+            
+            cat_name = parts[0].strip()
+            cat_icon = parts[1].strip()
+            func_str = parts[2].strip()
             
             items = []
-            for item_str in function_items:
-                parts = item_str.split("|")
-                if len(parts) >= 3:
-                    items.append({
-                        "name": parts[0].strip(),
-                        "command": parts[1].strip(),
-                        "description": parts[2].strip()
-                    })
-                elif len(parts) == 2:
-                    items.append({
-                        "name": parts[0].strip(),
-                        "command": parts[1].strip(),
-                        "description": ""
-                    })
+            if func_str:
+                func_parts = func_str.split(";")
+                for func in func_parts:
+                    if not func.strip():
+                        continue
+                    func_items = func.split(",")
+                    if len(func_items) >= 3:
+                        items.append({
+                            "name": func_items[0].strip(),
+                            "command": func_items[1].strip(),
+                            "description": func_items[2].strip()
+                        })
+                    elif len(func_items) == 2:
+                        items.append({
+                            "name": func_items[0].strip(),
+                            "command": func_items[1].strip(),
+                            "description": ""
+                        })
+                    elif debug:
+                        logger.warning(f"功能格式错误: '{func}'")
             
             result.append({
                 "name": cat_name,
                 "icon": cat_icon,
                 "items": items
             })
+        
         return result
-    
+
     def _paginate_categories(self, categories: list, page: int, per_page: int):
-        """将分类中的功能项分页"""
-        # 收集所有功能项
         all_items = []
         for cat in categories:
             for item in cat.get("items", []):
@@ -353,7 +356,6 @@ class MenuHandler:
         end = start + per_page
         page_items = all_items[start:end]
         
-        # 重新组织成分组分类
         paginated_categories = []
         cat_map = {}
         
@@ -369,7 +371,7 @@ class MenuHandler:
             cat_map[cat_name]["items"].append(item_data["item"])
         
         return paginated_categories, total_pages, total_items
-    
+
     def _is_at_me(self, event: AstrMessageEvent) -> bool:
         message_obj = event.message_obj
         if message_obj and hasattr(message_obj, 'message'):
