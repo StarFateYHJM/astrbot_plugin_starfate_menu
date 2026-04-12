@@ -33,7 +33,7 @@ class StarFateMenuPlugin(Star):
         self.menu_manager = MenuManager(self.menu_file)
         self.handler = MenuHandler(self, self.menu_manager)
         
-        logger.info(f"{self.display_name} 插件已加载（HTML渲染模式）")
+        logger.info(f"{self.display_name} 插件已加载")
 
     def _init_default_menu(self):
         """初始化默认菜单文件"""
