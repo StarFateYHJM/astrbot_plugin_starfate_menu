@@ -30,7 +30,6 @@ class StarFateMenuPlugin(Star):
         self._log(f"插件已加载，配置项: {len(self.config)}")
 
     def _log(self, msg: str, level: str = "info"):
-        """统一日志输出"""
         if not self.debug and level == "debug":
             return
         getattr(logger, level)(f"[DEBUG] {msg}" if level == "debug" else msg)
@@ -58,11 +57,15 @@ class StarFateMenuPlugin(Star):
         
         if self.config.get("pagination_enabled", True):
             if msg in self.PAGE_NEXT:
-                async for r in self._change_page(event, 1): yield r
-                return event.stop_event()
+                async for r in self._change_page(event, 1):
+                    yield r
+                event.stop_event()
+                return
             if msg in self.PAGE_PREV:
-                async for r in self._change_page(event, -1): yield r
-                return event.stop_event()
+                async for r in self._change_page(event, -1):
+                    yield r
+                event.stop_event()
+                return
         
         has = False
         async for r in self.handler.handle(event):
@@ -88,7 +91,7 @@ class StarFateMenuPlugin(Star):
             return
         await self._reload_config()
         self.menu_manager.reload()
-        self._log(f"配置已重载", "debug")
+        self._log("配置已重载", "debug")
         yield event.plain_result("菜单配置已重载")
 
     async def _reload_config(self):
