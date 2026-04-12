@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
@@ -11,13 +12,14 @@ from .core.image_renderer import ImageRenderer
 
 @register("astrbot_plugin_starfate_menu", "TF-MYMSI", "StarFate 功能菜单", "1.0.0")
 class StarFateMenuPlugin(Star):
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config: dict = None):
         super().__init__(context)
         self.name = "astrbot_plugin_starfate_menu"
         self.display_name = "StarFate 功能菜单"
         
-        # 数据目录
-        self.data_dir = Path(context.plugin_data_dir) / self.name
+        # 获取插件数据目录（官方推荐方式）
+        from astrbot.core.utils.astrbot_path import get_astrbot_data_path
+        self.data_dir = get_astrbot_data_path() / "plugin_data" / self.name
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         # 菜单文件路径
