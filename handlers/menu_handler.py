@@ -95,6 +95,11 @@ class MenuHandler:
         css_zoom = menu.get("css_zoom", 2.0)
         padding_body = menu.get("padding_body", "40px 50px")
         
+        base_font_size = menu.get("base_font_size", "16px")
+        h1_font_size = menu.get("h1_font_size", "2.5em")
+        h2_font_size = menu.get("h2_font_size", "2em")
+        h3_font_size = menu.get("h3_font_size", "1.5em")
+        
         bg_image = menu.get("background_image", "")
         overlay_html = ""
         if bg_image and menu.get("background_overlay", True):
@@ -119,6 +124,7 @@ class MenuHandler:
                     zoom: {css_zoom};
                     background-color: {bg_color};
                     position: relative;
+                    font-size: {base_font_size};
                 }}
                 .bg-layer {{
                     position: absolute;
@@ -145,18 +151,18 @@ class MenuHandler:
                     z-index: 2;
                 }}
                 .content h1 {{
-                    font-size: 2.5em;
+                    font-size: {h1_font_size};
                     margin-bottom: 20px;
                     padding-bottom: 15px;
                     border-bottom: 2px solid {border_color};
                 }}
                 .content h2 {{
-                    font-size: 2em;
+                    font-size: {h2_font_size};
                     margin-top: 30px;
                     margin-bottom: 15px;
                 }}
                 .content h3 {{
-                    font-size: 1.5em;
+                    font-size: {h3_font_size};
                     margin-top: 25px;
                     margin-bottom: 10px;
                 }}
