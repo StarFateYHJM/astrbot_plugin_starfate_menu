@@ -14,6 +14,7 @@ class StarFateMenuPlugin(Star):
         super().__init__(context)
         self.name = "astrbot_plugin_starfate_menu"
         self.display_name = "StarFate 功能菜单"
+        self.config = config or {}  # ✅ 保存插件配置
         
         # 获取插件数据目录
         from astrbot.core.utils.astrbot_path import get_astrbot_data_path
@@ -33,7 +34,7 @@ class StarFateMenuPlugin(Star):
         self.menu_manager = MenuManager(self.menu_file)
         self.handler = MenuHandler(self, self.menu_manager)
         
-        logger.info(f"{self.display_name} 插件已加载")
+        logger.info(f"{self.display_name} 插件已加载，配置项数量: {len(self.config)}")
 
     def _init_default_menu(self):
         """初始化默认菜单文件"""
@@ -81,6 +82,8 @@ class StarFateMenuPlugin(Star):
             yield event.plain_result("❌ 权限不足")
             return
         self.menu_manager.reload()
+        # 同时刷新插件配置
+        self.config = self.context.get_plugin_config(self.name) or self.config
         yield event.plain_result("✅ StarFate 菜单配置已重载")
 
     @filter.command("sfmenu_export")
@@ -94,8 +97,8 @@ class StarFateMenuPlugin(Star):
 
     async def _check_admin(self, event: AstrMessageEvent) -> bool:
         """检查管理员权限"""
-        config = self.context.get_config()
-        admin_list = config.get("admin_list", [])
+        global_config = self.context.get_config()
+        admin_list = global_config.get("admin_list", [])
         user_id = str(event.get_sender_id())
         return user_id in admin_list
 
