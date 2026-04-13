@@ -75,9 +75,8 @@ class MenuHandler:
         return menus[0] if menus else None
 
     def _build(self, m: dict) -> str:
-        bg = m.get("background_image", "")
+        bg = self.plugin.resolve_background(m.get("background_image", ""))
         overlay = f'<div class="overlay" style="background:{m.get("overlay_color","#000")};opacity:{m.get("overlay_opacity",0.5)}"></div>' if bg and m.get("background_overlay", True) else ""
-        
         return f'''<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
