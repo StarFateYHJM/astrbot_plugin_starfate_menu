@@ -39,6 +39,8 @@ class StarFateMenuPlugin(Star):
         path = get_astrbot_data_path()
         self.data_dir = (Path(path) if isinstance(path, str) else path) / "plugin_data" / self.name
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.backgrounds_dir = self.data_dir / "backgrounds"
+        self.backgrounds_dir.mkdir(exist_ok=True)
 
     def _init_files(self):
         self.menu_file = self.data_dir / "menu_content.json"
@@ -50,6 +52,18 @@ class StarFateMenuPlugin(Star):
     def _init_components(self):
         self.menu_manager = MenuManager(self.menu_file)
         self.handler = MenuHandler(self)
+
+    def resolve_background(self, user_input: str) -> str:
+        """解析背景图：本地优先，URL其次，都没有返回空"""
+        if not user_input:
+            return ""
+        if user_input.startswith(("http://", "https://")):
+            return user_input
+        local_path = self.backgrounds_dir / user_input
+        if local_path.exists():
+            return f"file://{local_path.absolute()}"
+        self._log(f"本地背景图不存在: {user_input}", "warning")
+        return ""
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
