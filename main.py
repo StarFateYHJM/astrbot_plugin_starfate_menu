@@ -1,7 +1,10 @@
 """StarFate 功能菜单插件 - 主入口"""
 
 import json
+import threading
+import socket
 from pathlib import Path
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
@@ -13,21 +16,44 @@ from .core.menu_manager import MenuManager
 @register("astrbot_plugin_starfate_menu", "YHJM", "StarFate 功能菜单", "1.0.0")
 class StarFateMenuPlugin(Star):
     """StarFate 功能菜单插件"""
-    
+
     PAGE_NEXT = ["下一页", "next", "下页", ">"]
     PAGE_PREV = ["上一页", "prev", "上页", "<"]
-    
+
     def __init__(self, context: Context, config: dict = None):
         super().__init__(context)
         self.name = "astrbot_plugin_starfate_menu"
         self.config = config or {}
         self.debug = self.config.get("debug_mode", False)
-        
+        self._http_server = None
+        self._http_port = self._find_free_port()
+
         self._init_paths()
         self._init_files()
         self._init_components()
-        
+        self._start_http_server()
+
         self._log(f"插件已加载，配置项: {len(self.config)}")
+        self._log(f"静态文件服务: http://localhost:{self._http_port}/")
+
+    def _find_free_port(self) -> int:
+        """找一个空闲端口"""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('', 0))
+            return s.getsockname()[1]
+
+    def _start_http_server(self):
+        """启动静态文件 HTTP 服务"""
+        import os
+        os.chdir(str(self.backgrounds_dir))
+
+        def run_server():
+            server = HTTPServer(('localhost', self._http_port), SimpleHTTPRequestHandler)
+            server.serve_forever()
+
+        thread = threading.Thread(target=run_server, daemon=True)
+        thread.start()
+        self._http_server = True
 
     def _log(self, msg: str, level: str = "info"):
         if not self.debug and level == "debug":
@@ -61,14 +87,15 @@ class StarFateMenuPlugin(Star):
             return user_input
         local_path = self.backgrounds_dir / user_input
         if local_path.exists():
-            return f"file://{local_path.absolute()}"
+            # 通过 HTTP 服务提供本地文件
+            return f"http://localhost:{self._http_port}/{user_input}"
         self._log(f"本地背景图不存在: {user_input}", "warning")
         return ""
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
         msg = event.message_str.strip().lower()
-        
+
         if self.config.get("pagination_enabled", True):
             if msg in self.PAGE_NEXT:
                 async for r in self._change_page(event, 1):
@@ -80,7 +107,7 @@ class StarFateMenuPlugin(Star):
                     yield r
                 event.stop_event()
                 return
-        
+
         has = False
         async for r in self.handler.handle(event):
             has = True
