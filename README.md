@@ -54,6 +54,14 @@ git clone https://github.com/StarFateYHJM/astrbot_plugin_starfate_menu.git
 
 ---
 
+## Markdown 变量
+
+菜单插件不支持变量替换，所有内容均为静态 Markdown。
+
+如需动态内容（如用户名、群名等），请使用入群欢迎插件。
+
+---
+
 ## 背景图使用
 
 ### 本地图片（推荐）
@@ -91,6 +99,7 @@ git clone https://github.com/StarFateYHJM/astrbot_plugin_starfate_menu.git
 
 - **协议签订** /协议 - 查看并签署用户协议
 - **签到** /sign - 每日签到领积分
+- **帮助** /help - 获取使用帮助
 
 ## 娱乐功能
 
@@ -98,6 +107,7 @@ git clone https://github.com/StarFateYHJM/astrbot_plugin_starfate_menu.git
 |------|------|------|
 | 抽签 | /draw | 随机抽取运势签 |
 | 猜数字 | /guess | 猜数字小游戏 |
+| 笑话 | /joke | 随机讲一个笑话 |
 
 ---
 发送对应命令即可使用功能
