@@ -58,8 +58,6 @@ git clone https://github.com/StarFateYHJM/astrbot_plugin_starfate_menu.git
 
 菜单插件不支持变量替换，所有内容均为静态 Markdown。
 
-如需动态内容（如用户名、群名等），请使用入群欢迎插件。
-
 ---
 
 ## 背景图使用
