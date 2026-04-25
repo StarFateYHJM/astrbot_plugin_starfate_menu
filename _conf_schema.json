@@ -32,6 +32,8 @@
                     
                     "title_color": {"type": "string", "description": "标题颜色", "default": "#E6B800"},
                     "text_color": {"type": "string", "description": "正文颜色", "default": "#FFFFFF"},
+                    "h2_color": {"type": "string", "description": "H2颜色", "default": "#E6B800"},
+                    "h3_color": {"type": "string", "description": "H3颜色", "default": "#E6B800"},
                     "link_color": {"type": "string", "description": "链接颜色", "default": "#00D2FF"},
                     "border_color": {"type": "string", "description": "边框/分割线颜色", "default": "#333355"},
                     
@@ -53,7 +55,7 @@
             "background_color": "#1A1A2E", "background_image": "", "background_overlay": true,
             "overlay_color": "#000000", "overlay_opacity": 0.5,
             "title_color": "#E6B800",
-            "text_color": "#FFFFFF", "link_color": "#00D2FF", "border_color": "#333355",
+            "text_color": "#FFFFFF", "link_color": "#00D2FF", "border_color": "#333355", "h2_color": "#E6B800", "h3_color": "#E6B800",
             "base_font_size": "16px", "h1_font_size": "2.5em", "h2_font_size": "2em", "h3_font_size": "1.5em",
             "code_bg_color": "#2D2D2D", "code_text_color": "#E6E6E6",
             "content": "# 功能菜单\n\n---\n\n- **协议签订** /协议 - 查看并签署\n- **签到** /sign - 每日签到"
