@@ -87,8 +87,8 @@ body{{font-family:"Microsoft YaHei",sans-serif;zoom:{m.get("css_zoom",2)};backgr
 .overlay{{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}}
 .menu-container{{position:relative;padding:{m.get("padding_body","40px 50px")};color:{m.get("text_color","#FFF")};z-index:2}}
 .content h1{{color:{m.get("title_color","#E6B800")};font-size:{m.get("h1_font_size","2.5em")};border-bottom:2px solid {m.get("border_color","#333")};margin-bottom:20px;padding-bottom:15px}}
-.content h2{{font-size:{m.get("h2_font_size","2em")};margin:30px 0 15px}}
-.content h3{{font-size:{m.get("h3_font_size","1.5em")};margin:25px 0 10px}}
+.content h2{{color:{m.get("h2_color","#E6B800")};font-size:{m.get("h2_font_size","2em")};margin:30px 0 15px}}
+.content h3{{color:{m.get("h3_color","#E6B800")};font-size:{m.get("h3_font_size","1.5em")};margin:25px 0 10px}}
 .content p{{margin-bottom:15px;line-height:1.6}}
 .content ul,.content ol{{margin-left:25px;margin-bottom:15px}}
 .content li{{margin-bottom:8px}}
